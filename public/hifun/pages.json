@@ -1,0 +1,180 @@
+{
+	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
+		{
+			"path": "pages/index/index",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+				"navigationStyle": "custom",
+                "enablePullDownRefresh": false
+            }
+		}
+        ,{
+            "path" : "pages/index/rule",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "%index.title.0%",
+				"navigationBarBackgroundColor": "#0a0c2b",
+				"navigationBarTextStyle": "white",
+                "enablePullDownRefresh": false
+            }
+            
+        }
+	    ,{
+            "path" : "pages/index/invite",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+				"navigationStyle": "custom",
+                "enablePullDownRefresh": false
+            }
+            
+        }
+        ,{
+            "path" : "pages/index/counter",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "%counter.title%",
+				"navigationBarBackgroundColor": "#0a0c2b",
+				"navigationBarTextStyle": "white",
+                "enablePullDownRefresh": false
+            }
+            
+        }
+        ,{
+            "path" : "pages/index/lang",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "%lang.title%",
+				"navigationBarBackgroundColor": "#0a0c2b",
+				"navigationBarTextStyle": "white",
+                "enablePullDownRefresh": false
+            }
+            
+        }
+        ,{
+            "path" : "pages/team/team",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "%team.title%",
+				"navigationBarBackgroundColor": "#0a0c2b",
+				"navigationBarTextStyle": "white",
+                "enablePullDownRefresh": false
+            }
+            
+        }
+        ,{
+            "path" : "pages/team/memo",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "%team.memo.title%",
+				"navigationBarBackgroundColor": "#0a0c2b",
+				"navigationBarTextStyle": "white",
+                "enablePullDownRefresh": false
+            }
+            
+        }
+        ,{
+            "path" : "pages/reward/reward",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "%reward.title%",
+				"navigationBarBackgroundColor": "#0a0c2b",
+				"navigationBarTextStyle": "white",
+                "enablePullDownRefresh": false
+            }
+            
+        }
+        ,{
+            "path" : "pages/money/money",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "%money.title%",
+				"navigationBarBackgroundColor": "#0a0c2b",
+				"navigationBarTextStyle": "white",
+                "enablePullDownRefresh": false
+            }
+            
+        }
+        ,{
+            "path" : "pages/money/withdraw",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "%withdraw.title%",
+				"navigationBarBackgroundColor": "#0a0c2b",
+				"navigationBarTextStyle": "white",
+                "enablePullDownRefresh": false
+            }
+            
+        }
+        ,{
+            "path" : "pages/money/integral",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "%integral.title%",
+				"navigationBarBackgroundColor": "#0a0c2b",
+				"navigationBarTextStyle": "white",
+                "enablePullDownRefresh": false
+            }
+            
+        }
+        ,{
+            "path" : "pages/blind/blind",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "%blind.title%",
+				"navigationBarBackgroundColor": "#0a0c2b",
+				"navigationBarTextStyle": "white",
+                "enablePullDownRefresh": false
+            }
+            
+        }
+		,{
+			"path": "pages/join",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+				"navigationStyle": "custom",
+                "enablePullDownRefresh": false
+            }
+		}
+        ,{
+            "path" : "pages/money/memo",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "%integral.memo.title%",
+				"navigationBarBackgroundColor": "#0a0c2b",
+				"navigationBarTextStyle": "white",
+                "enablePullDownRefresh": false
+            }
+            
+        }
+        ,{
+            "path" : "pages/money/recharge",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+				"navigationStyle": "custom",
+                "enablePullDownRefresh": false
+            }
+            
+        }
+        ,{
+            "path" : "pages/money/recharge_list",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "%rechargelist.title%",
+				"navigationBarBackgroundColor": "#0a0c2b",
+				"navigationBarTextStyle": "white",
+                "enablePullDownRefresh": false
+            }
+            
+        }
+    ],
+	"globalStyle": {
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "%title%",
+		"navigationBarBackgroundColor": "#F8F8F8",
+		"backgroundColor": "#F8F8F8"
+	}
+}

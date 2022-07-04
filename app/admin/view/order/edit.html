@@ -1,0 +1,315 @@
+{extend name="layout/main" /}
+
+{block name="header"}
+{/block}
+
+{block name="content"}
+<section class="panel">
+    <header class="panel-heading">
+        <h4>订单详情</h4>
+    </header>
+    <div class="panel-body" style="padding:0;">
+        <form class="form-horizontal" method="post" onsubmit="return false" role="form">
+			<div class="form-title">会员信息</div>
+	        <input type="hidden" name="id" value="{$row.id}">
+			<input type="hidden" name="origin_status" value="{$row.status}" />
+			<input type="hidden" name="print" id="print" value="" />
+			<div class="form-group">
+				<label class="col-sm-2 control-label">下单人</label>
+				<div class="col-sm-5">
+					<div class="col-block"><a href="{:url('member/edit', ['id'=>$row.member_id])}" target="_blank">{$row.member_name}</a></div>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-2 control-label">下单人电话</label>
+				<div class="col-sm-5">
+					<div class="col-block">{$row.mobile}</div>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-2 control-label">下单时间</label>
+				<div class="col-sm-5">
+					<div class="col-block">{:date('Y-m-d H:i:s', $row.add_time)}</div>
+				</div>
+			</div>
+	  
+	  
+			<div class="form-title">收货信息</div>
+			<div class="form-group">
+				<label class="col-sm-2 control-label">收货人姓名</label>
+				<div class="col-sm-5">
+					<div class="col-block">{$row.name}</div>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-2 control-label">地区</label>
+				<div class="col-sm-5">
+					<div class="col-block">{$row.province}{$row.city}{$row.district}</div>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-2 control-label">地址</label>
+				<div class="col-sm-5">
+					<input type="text" name="address" value="{$row.address}" class="form-control" />
+				</div>
+			</div>
+	  
+	  
+			<div class="form-title">订单信息</div>
+			<div class="form-group">
+				<label class="col-sm-2 control-label">订单ID</label>
+				<div class="col-sm-5">
+					<div class="col-block">{$row.id}</div>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-2 control-label">订单号</label>
+				<div class="col-sm-5">
+					<div class="col-block">{$row.order_sn}</div>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-2 control-label">订单类型</label>
+				<div class="col-sm-5">
+					<div class="col-block blue">
+						{if $row.type==0}普通订单
+						{elseif $row.type==1}团购订单
+						{elseif $row.type==2}秒杀订单
+						{elseif $row.type==3}砍价订单
+						{/if}
+					</div>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-2 control-label">支付方式</label>
+				<div class="col-sm-5">
+					<div class="col-block">
+						{if $row.pay_method=='wxpay'}APP内微信支付
+						{elseif $row.pay_method=='wxpay_h5'}服务号内支付
+						{elseif $row.pay_method=='wxpay_mini'}小程序内支付
+						{elseif $row.pay_method=='alipay'}支付宝支付
+						{elseif $row.pay_method=='yue'}余额支付
+						{elseif $row.pay_method=='integral'}积分兑换
+						{/if}
+					</div>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-2 control-label">支付时间</label>
+				<div class="col-sm-5">
+					<div class="col-block">{if $row.pay_time}{:date('Y-m-d H:i:s', $row.pay_time)}{else}-{/if}</div>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-2 control-label">快递公司</label>
+				<div class="col-sm-5">
+					<input type="text" name="shipping_company" value="{$row.shipping_company}" class="form-control" />
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-2 control-label">快递单号</label>
+				<div class="col-sm-5">
+					<input type="text" name="shipping_number" value="{$row.shipping_number}" class="form-control" />
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-2 control-label">状态</label>
+				<div class="col-sm-5">
+					<select name="status" id="status" class="form-control">
+					{if $row.status >= 0}
+						<option value="">请选择</option>
+						<option value="0" {if $row.status==0}selected{/if}>未支付</option>
+						{if $row.status > 0}
+							<option value="1" {if $row.status==1}selected{/if}>已支付</option>
+							<option value="2" {if $row.status==2}selected{/if}>已发货</option>
+							<option value="3" {if $row.status==3}selected{/if}>交易完成</option>
+							<option value="4" {if $row.status==4}selected{/if}>已评价</option>
+						{/if}
+					{elseif $row.status==-1}
+						<option value="-1" selected>已取消</option>
+					{elseif $row.status==-2}
+						<option value="-2" selected>已退款</option>
+					{elseif $row.status==-3}
+						<option value="-3" selected>已退款</option>
+					{/if}
+					</select>
+				</div>
+				{if $row.ask_refund_time>0}<span class="col-line" style="color:#f00;">买家提交了申请退货/款</span>{/if}
+			</div>
+			<div class="form-group">
+				<label class="col-sm-2 control-label">{if $row.integral_order==1}订单总积分{else}订单总价{/if}</label>
+				<div class="col-sm-5">
+					<div class="col-sm-2 no-padding">
+						<input type="text" name="total_price" id="total_price" value="{if $row.integral_order==1}{:intval($row.total_price)}{else}{$row.total_price}{/if}" class="form-control" />
+					</div>
+					<span class="col-item">{if $row.integral_order==1}积分{else}元{/if}</span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-2 control-label">运费</label>
+				<div class="col-sm-5">
+					<div class="col-sm-2 no-padding">
+						<input type="text" name="shipping_price" value="{$row.shipping_price}" class="form-control" />
+					</div>
+					<span class="col-item">元</span>
+				</div>
+			</div>
+	        <div class="form-group">
+		        <div class="col-sm-12">
+			        <div class="col-sm-12">
+				        <div class="col-group">
+							<div class="form-group">
+								<label class="col-sm-2 control-label">余额支付了</label>
+								<div class="col-sm-5">
+									<div class="col-block">{$row.used_money}元</div>
+								</div>
+							</div>
+							<div class="form-group">
+								<label class="col-sm-2 control-label">佣金支付了</label>
+								<div class="col-sm-5">
+									<div class="col-block">{$row.used_commission}元</div>
+								</div>
+							</div>
+							<div class="form-group">
+								<label class="col-sm-2 control-label">优惠券支付了</label>
+								<div class="col-sm-5">
+									<div class="col-block">
+										{$row.used_coupon}元
+										{if $row.coupon_sn}<span class="col-item">优惠券编号 <a href="{:url('coupon/edit', ['id'=>$row.coupon_id])}" target="_blank">{$row.coupon_sn}</a></span>{/if}
+									</div>
+								</div>
+							</div>
+						</div>
+			        </div>
+		        </div>
+	        </div>
+			
+	  
+			<div class="form-title">商品列表</div>
+	        {if count($goods)}
+			{foreach $goods as $g}
+	        <div class="form-group">
+		        <div class="col-sm-12">
+			        <div class="col-sm-12">
+						<div class="col-group">
+							<input type="hidden" name="goods_id[]" value="{$g.id}" />
+							<div class="form-group">
+								<label class="col-sm-2 control-label">商品图片</label>
+								<div class="col-sm-5">
+									<div class="col-block">
+										<a href="{$g.goods_pic}" target="_blank"><img src="{$g.goods_pic}" width="100" onerror="this.src='{__STATIC__}/images/nopic.png'" /></a>
+									</div>
+								</div>
+							</div>
+							<div class="form-group">
+								<label class="col-sm-2 control-label">商品名称</label>
+								<div class="col-sm-5">
+									<div class="col-block"><a href="{:url('goods/edit', ['id'=>$g.goods_id])}" target="_blank">{$g.goods_name}</a></div>
+								</div>
+							</div>
+							{if $g.spec}
+							<div class="form-group">
+								<label class="col-sm-2 control-label">商品规格</label>
+								<div class="col-sm-5">
+									<div class="col-block">{$g.spec}</div>
+								</div>
+							</div>
+							{/if}
+							<div class="form-group">
+								<label class="col-sm-2 control-label">购买时{if $row.integral_order==1}商品积分{else}商品单价{/if}</label>
+								<div class="col-sm-5">
+									<div class="col-block">{$g.single_price}{if $row.integral_order==1}积分{else}元{/if}</div>
+								</div>
+							</div>
+							<div class="form-group">
+								<label class="col-sm-2 control-label">购买数量</label>
+								<div class="col-sm-5">
+									<div class="col-block">{$g.quantity}件</div>
+								</div>
+							</div>
+							<div class="form-group">
+								<label class="col-sm-2 control-label">{if $row.integral_order==1}商品总积分{else}商品总价{/if}</label>
+								<div class="col-sm-5">
+									<div class="col-sm-2 no-padding">
+										<input type="number" name="price[]" value="{if $row.integral_order==1}{:intval($g.price)}{else}{$g.price}{/if}" class="form-control price" />
+										<input type="hidden" value="{$g.quantity}" class="quantity" />
+										<input type="hidden" value="{$g.price}" class="tol" />
+									</div>
+									<span class="col-item">{if $row.integral_order==1}积分{else}元{/if}</span>
+								</div>
+							</div>
+							{if $g.shop_id>0}
+							<div class="form-group">
+								<label class="col-sm-2 control-label">商家</label>
+								<div class="col-sm-5">
+									<div class="col-block"><a href="{:url('shop/edit', ['id'=>$g.shop_id])}" target="_blank">{$g.shop_name}</a></div>
+								</div>
+							</div>
+							{/if}
+							{if $g.comment_time>0}
+							<div class="form-group">
+								<label class="col-sm-2 control-label">评价星级</label>
+								<div class="col-sm-5">
+									<div class="col-block">{if $g.comment_content}{$g.comment_stars}星　　评论时间：{:date('Y-m-d H:i:s', $g.comment_time)}{/if}</div>
+								</div>
+							</div>
+							<div class="form-group">
+								<label class="col-sm-2 control-label">评价内容</label>
+								<div class="col-sm-5">
+									<textarea class="form-control" style="height:80px;" disabled>{$g.comment_content}</textarea>
+								</div>
+							</div>
+							{/if}
+						</div>
+					</div>
+				</div>
+			</div>
+			{/foreach}
+			{/if}
+
+            <div class="form-actions">
+                <div class="col-sm-offset-2 col-sm-10">
+                    <button type="button" id="submit" data-url="{:url('order/edit')}" class="btn btn-primary">提交</button>
+                    <button type="button" id="sub" class="btn btn-warning">打印发货单</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</section>
+{/block}
+
+
+{block name="footer"}
+<script>
+function add(){
+	let total = 0;
+	$('.tol').each(function(){
+		total += parseFloat($(this).val());
+	});
+	$('#total_price').val(total);
+}
+$(function(){
+	$('.price').on('keyup', function(){
+		let total = $(this).val();
+		$(this).siblings('.tol').val(total);
+		add();
+	});
+	$('#submit').click(function(){
+		$('#print').val('');
+		main.ajaxForm(document.getElementById('submit'));
+	});
+	$('#sub').click(function(){
+		$('#print').val('1');
+		main.ajaxForm(document.getElementById('submit'));
+	});
+	$('#status').change(function(){
+		let status = $(this).val();
+		if(status > 0){
+			$('#sub').show();
+		}else{
+			$('#sub').hide();
+		}
+	});
+});
+</script>
+{/block}

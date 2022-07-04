@@ -1,0 +1,143 @@
+{extend name="layout/main" /}
+
+{block name="header"}
+{/block}
+
+{block name="content"}
+<section class="panel">
+    <header class="panel-heading">
+        <h4>{if $row.id>0}修改{else}添加{/if}店铺</h4>
+    </header>
+    <div class="panel-body">
+        <form class="form-horizontal" method="post" onsubmit="return false" role="form">
+	        <input type="hidden" name="id" value="{$row.id}">
+			<div class="form-group">
+				<label class="col-sm-2 control-label">所属会员</label>
+				<div class="col-sm-5">
+					<select class="form-control col-selectpicker" name="member_id" search="true">
+						<option value="">请选择</option>
+						{foreach $member as $g}
+						<option value="{$g.id}" {if $g.id==$row.member_id}selected{/if}>{$g.name}</option>
+						{/foreach}
+					</select>
+				</div>
+			</div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">名称</label>
+                <div class="col-sm-5">
+                    <input type="text" value="{$row.name}" name="name" class="form-control">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">联系电话</label>
+                <div class="col-sm-5">
+                    <input type="text" value="{$row.tel}" name="tel" class="form-control">
+                </div>
+            </div>
+			<div class="form-group">
+				<label class="col-sm-2 control-label">所在区</label>
+				<div class="col-sm-10 no-padding">
+					<div class="col-sm-1 no-pd-r">
+						<select id="province" name="province" class="form-control"></select>
+					</div>
+					<div class="col-sm-1 no-pd-r">
+						<select id="city" name="city" class="form-control"></select>
+					</div>
+					<div class="col-sm-1 no-pd-r">
+						<select id="district" name="district" class="form-control"></select>
+					</div>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-2 control-label">地址</label>
+				<div class="col-sm-10 no-padding">
+					<div class="col-sm-4 no-pd-r">
+						<input type="text" id="address" name="address" value="{$row.address}" class="form-control" />
+					</div>
+					<div class="col-sm-1">
+						<a class="btn btn-info" href="javascript:void(0)" id="getLocation"><i class="fa fa-search"></i> 获取经纬度</a>
+					</div>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-2 control-label">经纬度</label>
+				<div class="col-sm-2 no-pd-r">
+					<input type="text" id="longitude" name="longitude" value="{$row.longitude}" placeholder="经度" class="form-control" />
+				</div>
+				<div class="col-sm-2">
+					<input type="text" id="latitude" name="latitude" value="{$row.latitude}" placeholder="纬度" class="form-control" />
+				</div>
+			</div>
+	        <div class="form-group">
+				<div class="col-sm-offset-2 col-sm-5">
+					<div id="allmap" class="form-control" style="height:250px;"></div>
+				</div>
+			</div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">店铺介绍</label>
+                <div class="col-sm-4">
+	                <textarea class="form-control ckeditor hidden" name="description">{$row.description}</textarea>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">排序</label>
+                <div class="col-sm-5">
+                    <input type="text" value="{$row.sort}" name="sort" class="form-control" placeholder="数字越小，排到最前面">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">状态</label>
+                <div class="col-sm-8">
+	                <input type="radio" data-type="radio" data-text="正常" {if $row.status==1}checked{/if} name="status" value="1" />
+	                <input type="radio" data-type="radio" data-text="等待审核" {if $row.status==0}checked{/if} name="status" value="0" />
+	                <input type="radio" data-type="radio" data-text="冻结" {if $row.status==-1}checked{/if} name="status" value="-1" />
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <div class="col-sm-offset-2 col-sm-10">
+                    <button type="submit" data-url="{:url('shop/edit')}" onclick="main.ajaxForm(this)" class="btn btn-primary">提交</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</section>
+{/block}
+
+
+{block name="footer"}
+<script src="{__STATIC__}/js/city.js"></script>
+<script>
+$(function(){
+	showCity({ districtCode:'{$row.district}', province:'#province', city:'#city', district:'#district' });
+	$('#allmap').baiduMapApi({
+		longitude : $('#longitude').val(),
+		latitude : $('#latitude').val(),
+		lngObj : '#longitude',
+		latObj : '#latitude',
+		controlType : 3
+	});
+	$('#getLocation').click(function(){
+		let val = $('#address').val();
+		if(!val.length){
+			main.alert('请先填写所在地址');
+			return;
+		}
+		let city = $('#city').selected().text(), district = $('#district').selected().text();
+		if(Number($('#district').selected().index()) === 0)district = '';
+		$.getBaiduPlace(district+val, city, function(json, xq){
+			if(!xq.length){
+				main.alert('没有找到匹配地址');
+				return;
+			}
+			$('#longitude').val(xq[0].location.lng);
+			$('#latitude').val(xq[0].location.lat);
+			$('#allmap').baiduMap({
+				longitude : xq[0].location.lng,
+				latitude : xq[0].location.lat
+			});
+		});
+	});
+});
+</script>
+{/block}

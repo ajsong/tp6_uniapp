@@ -1,0 +1,161 @@
+{extend name="layout/main" /}
+
+{block name="header"}
+{/block}
+
+{block name="content"}
+{assign name="ext_property" value="$Request.get.ext_property"}
+<section class="panel">
+    <header class="panel-heading">
+	    <a type="button" href="{:url('goods/add')}" class="btn btn-info pull-right">添加商品</a>
+        <h4>商品列表</h4>
+    </header>
+    <div class="panel-body">
+        <form class="form-block" action="">
+            <div class="form-group">
+	            <div class="form-group">
+	                <div class="col-sm-12">
+		                <div class="col-sm-2 no-pd-r">
+		                    <input type="text" id="keyword" value="{$Request.get.keyword}" name="keyword" class="form-control" placeholder="关键词">
+		                </div>
+		                <div class="col-sm-1 no-pd-r">
+		                    <input type="text" value="{$Request.get.start_price}" name="start_price" class="form-control" placeholder="最低价格">
+		                </div>
+			            <div class="col-gap">-</div>
+		                <div class="col-sm-1 no-pd-r">
+		                    <input type="text" value="{$Request.get.end_price}" name="end_price" class="form-control" placeholder="最高价格">
+		                </div>
+		                <div class="col-sm-1 no-pd-r">
+		                    <select name="category_id" class="form-control">
+		                        <option value="">分类</option>
+			                    {$categories|raw}
+		                    </select>
+		                </div>
+			            {if count($shops)}
+		                <div class="col-sm-1 no-pd-r">
+		                    <select name="shop_id" class="form-control">
+		                        <option value="">店铺</option>
+		                        {foreach $shops as $g}
+								<option value="{$g.id}" {if $Request.get.shop_id==$g.id}selected{/if}>{$g.name}</option>
+								{/foreach}
+		                    </select>
+		                </div>
+			            {/if}
+			            {if count($brands)}
+		                <div class="col-sm-1 no-pd-r">
+		                    <select name="brand_id" class="form-control">
+		                        <option value="">品牌</option>
+		                        {foreach $brands as $g}
+								<option value="{$g.id}" {if $Request.get.brand_id==$g.id}selected{/if}>{$g.name}</option>
+								{/foreach}
+		                    </select>
+		                </div>
+			            {/if}
+		                <div class="col-sm-1 no-pd-r">
+		                    <select name="status" class="form-control">
+		                        <option value="">状态</option>
+		                        <option {if $Request.get.status=='1'}selected{/if} value="1">正常</option>
+			                    <option {if $Request.get.status=='-1'}selected{/if} value="-1">自定上架时间</option>
+		                        <option {if $Request.get.status=='0'}selected{/if} value="0">下架</option>
+		                    </select>
+		                </div>
+	                </div>
+                </div>
+	            <div class="col-sm-3 no-pd-r">
+		            <input type="checkbox" data-type="checkbox" data-text="推荐" name="ext_property[]" value="1" {if is_array($ext_property) && in_array(1, $ext_property)}checked{/if} />
+		            <input type="checkbox" data-type="checkbox" data-text="热销" name="ext_property[]" value="2" {if is_array($ext_property) && in_array(2, $ext_property)}checked{/if} />
+		            <input type="checkbox" data-type="checkbox" data-text="精品" name="ext_property[]" value="3" {if is_array($ext_property) && in_array(3, $ext_property)}checked{/if} />
+		            <input type="checkbox" data-type="checkbox" data-text="新品" name="ext_property[]" value="4" {if is_array($ext_property) && in_array(4, $ext_property)}checked{/if} />
+		            <input type="checkbox" data-type="checkbox" data-text="折扣" name="ext_property[]" value="5" {if is_array($ext_property) && in_array(5, $ext_property)}checked{/if} />
+	            </div>
+	            <div class="col-sm-1">
+	                <button type="submit" class="btn btn-color">搜索</button>
+	            </div>
+            </div>
+        </form>
+        <div class="panel-table">
+	        <table class="table table-bordered table-striped no-margin">
+	            <thead>
+	            <tr>
+	                <th>ID</th>
+	                <th class="text-left">名称</th>
+					<th>图片</th>
+					<th>二维码</th>
+					<th>价格</th>
+					<!--<th>促销价</th>-->
+					<th>库存</th>
+					<th>分类</th>
+					{if count($shops)}<th>店铺</th>{/if}
+					{if count($brands)}<th>品牌</th>{/if}
+					<th>推荐</th>
+					<th>热销</th>
+					<th>精品</th>
+					<th>新品</th>
+					<th>折扣</th>
+					<th>状态</th>
+					<th>添加时间</th>
+	                <th>操作</th>
+	            </tr>
+	            </thead>
+	            <tbody>
+	            {if count($list)}
+	            {foreach $list as $g}
+	            <tr>
+	                <td>{$g.id}</td>
+		            <td class="text-left"><a href="{:url('goods/edit', ['id'=>$g.id])}">{$g.name}</a></td>
+		            <td><img src="{$g.pic}" width="50" onerror="this.src='{__STATIC__}/images/nopic.png'" /></td>
+		            <td><img src="/index/other/qrcode?data={$g.url}" width="50" onerror="this.src='{__STATIC__}/images/nopic.png'" /></td>
+					<td>{$g.price}</td>
+					<!--<td>{$g.promote_price}</td>-->
+					<td>{$g.stocks}</td>
+					<td>{$g.category_name}</td>
+					{if count($shops)}<td>{$g.shop_name}</td>{/if}
+					{if count($brands)}<td>{$g.brand_name}</td>{/if}
+					<td>
+						<input type="checkbox" data-type="checkbox-app" coo-ajax="post" data-url="{:url('goods/ext_property')}" data-data='{"id":{$g.id}, "ext_property":1, "checked":this.checked}' {if strpos(','.$g.ext_property.',', ',1,')!==false}checked{/if} />
+					</td>
+					<td>
+						<input type="checkbox" data-type="checkbox-app" coo-ajax="post" data-url="{:url('goods/ext_property')}" data-data='{"id":{$g.id}, "ext_property":2, "checked":this.checked}' {if strpos(','.$g.ext_property.',', ',2,')!==false}checked{/if} />
+					</td>
+					<td>
+						<input type="checkbox" data-type="checkbox-app" coo-ajax="post" data-url="{:url('goods/ext_property')}" data-data='{"id":{$g.id}, "ext_property":3, "checked":this.checked}' {if strpos(','.$g.ext_property.',', ',3,')!==false}checked{/if} />
+					</td>
+					<td>
+						<input type="checkbox" data-type="checkbox-app" coo-ajax="post" data-url="{:url('goods/ext_property')}" data-data='{"id":{$g.id}, "ext_property":4, "checked":this.checked}' {if strpos(','.$g.ext_property.',', ',4,')!==false}checked{/if} />
+					</td>
+					<td>
+						<input type="checkbox" data-type="checkbox-app" coo-ajax="post" data-url="{:url('goods/ext_property')}" data-data='{"id":{$g.id}, "ext_property":5, "checked":this.checked}' {if strpos(','.$g.ext_property.',', ',5,')!==false}checked{/if} />
+					</td>
+	                <td>
+	                    {if $g.status==1}
+	                    <font class="fa fa-check"></font>
+	                    {else}
+	                    <font class="fa fa-close"></font>
+	                    {/if}
+	                </td>
+	                <td>{:date('Y-m-d H:i', $g.add_time)}</td>
+	                <td>
+	                    <a href="{:url('goods/edit', ['id'=>$g.id])}" class="btn btn-xs btn-info">修改</a>
+	                    <a data-url="{:url('goods/delete', ['id'=>$g.id])}" onclick="main.ajaxDelete(this)" data-msg="确定要删除吗？" class="btn btn-xs btn-danger">删除</a>
+	                </td>
+	            </tr>
+	            {/foreach}
+	            {else}
+	            <tr class="text-center">
+	                <td colspan="20">暂无数据</td>
+	            </tr>
+	            {/if}
+	            </tbody>
+	        </table>
+        </div>
+        <div class="page">
+            {$list|raw}
+        </div>
+    </div>
+</section>
+{/block}
+
+
+{block name="footer"}
+
+{/block}

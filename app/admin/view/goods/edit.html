@@ -1,0 +1,1156 @@
+{extend name="layout/main" /}
+
+{block name="header"}
+<style>
+.mul-group{border:1px solid #e5e5e5; background:#fff; padding:10px; border-radius:2px;}
+.mul-group .mul-toolbar{margin-top:7px; padding:7px 0 7px 12px; background:#f8f8f8; border-radius:2px;}
+.mul-group .mul-toolbar button{border-radius:2px; height:30px; min-height:30px; line-height:1; font-size:12px;}
+.mul-group .mul-toolbar button[disabled]{cursor:not-allowed;}
+.mul-group .mul-group-row:empty + .mul-toolbar{margin-top:0;}
+.mul-group .mul-list a.del{display:block; opacity:0; position:absolute; z-index:1; top:8px; right:12px; width:18px; height:18px; overflow:hidden; font-size:18px; color:#ccc; text-decoration:none; text-align:center; cursor:pointer; -webkit-transition:all 200ms ease-out; transition:all 200ms ease-out;}
+.mul-group .mul-list a.del:hover{color:#dc0431;}
+.mul-group .mul-list:hover .col-sm-11 > a.del, .mul-group .mul-list:hover .col-sm-12 > a.del{opacity:1;}
+.mul-group .mul-list label{font-size:12px; text-align:left;}
+.mul-group .mul-list > .form-group{margin-left:0; margin-right:0; padding:7px 0;}
+.mul-group .mul-list > .form-group:first-child{background:#f8f8f8;}
+.mul-group .mul-list > .form-group input, .mul-group .mul-list > .form-group select{height:34px; border:1px solid #e8ecf3; background:#fff; font-size:13px; font-weight:400; border-radius:2px; padding:0 12px; box-sizing:border-box;}
+.mul-group .mul-list .col-sm-11{height:auto;}
+.mul-group .mul-list .col-sm-11:after{content:""; display:block; clear:both;}
+.mul-group .mul-list .col-sm-11 div.col-sm-2 a.del{top:-9px; right:3px;}
+.mul-group .mul-list .col-sm-11 div.col-sm-2:hover a.del{opacity:1;}
+
+.spec-table{border:1px solid #e5e5e5; padding:10px 10px 0 10px; border-radius:2px; overflow:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch;}
+html:not(.col-windows) .spec-table::-webkit-scrollbar{width:4px; height:4px;}
+html:not(.col-windows) .spec-table::-webkit-scrollbar-track{display:none;}
+html:not(.col-windows) .spec-table::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.5); border-radius:2px;}
+.spec-table table{border-collapse:collapse; border-spacing:0; width:100%;}
+.spec-table th, .spec-table td{text-align:left; font-weight:normal; padding:8px; font-size:12px; white-space:nowrap;}
+.spec-table td input, .spec-table td select{height:34px; border:1px solid #e8ecf3; background:#fff; font-size:13px; font-weight:400; border-radius:2px; padding:0 12px; box-sizing:border-box;}
+.spec-table td .radio, .spec-table td .checkbox{padding-top:4px;}
+.spec-table td .spec_pic{display:block; float:left; width:30px; height:30px; overflow:hidden; border:1px solid #d5d5d5; text-align:center; text-decoration:none; border-radius:2px; background-repeat:no-repeat; background-position:center center; background-size:cover;}
+.spec-table td .spec_pic:hover{border-color:#b5b5b5;}
+.spec-table td .spec_pic i{display:block; margin:7px auto 0 auto; font-style:normal; width:16px; height:16px; line-height:14px; font-size:18px; color:#b5b5b5;}
+.spec-table td .spec_pic i.preloader{font-size:0; display:block !important;}
+.spec-table td .spec_pic[style*="background-image"] i{display:none;}
+.spec-table td .copy, .spec-table td .paste{display:block; float:left; line-height:30px; margin-left:10px; font-size:12px;}
+.spec-table tbody td{border:1px solid #e5e5e5;}
+.spec-table tbody td:first-child{border-left:none;}
+.spec-table tbody td:last-child{border-right:none;}
+.spec-table tfoot div{float:left; height:34px; line-height:34px;}
+.spec-table tfoot a, .spec-table tfoot input{display:block; float:left; margin-left:15px;}
+
+.showmenu{background:#fff; box-shadow:0 0 3px rgba(0,0,0,0.3); width:140px; max-height:180px; overflow:auto; overflow-x:hidden;}
+html:not(.col-windows) .showmenu::-webkit-scrollbar{width:4px; height:4px;}
+html:not(.col-windows) .showmenu::-webkit-scrollbar-track{display:none;}
+html:not(.col-windows) .showmenu::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.5); border-radius:2px;}
+.showmenu ul, .showmenu li{list-style:none; padding:0; margin:0;}
+.showmenu li{height:30px; line-height:30px; font-size:12px; text-align:left;}
+.showmenu li span, .showmenu li a{display:block; height:100%; box-sizing:border-box; text-decoration:none; padding-left:10px; font-size:12px; color:#333;}
+.showmenu li span{color:#999;}
+.showmenu li a:hover{background:#398bfc; color:#fff !important;}
+.showmenu li a.this{color:#398bfc;}
+</style>
+{/block}
+
+{block name="content"}
+<section class="panel">
+    <header class="panel-heading">
+        <h4>{if $row.id>0}修改{else}添加{/if}商品</h4>
+    </header>
+    <div class="panel-body">
+        <form class="form-horizontal" method="post" onsubmit="return false" role="form">
+	        <input type="hidden" name="id" value="{$row.id}">
+            <div class="form-group">
+                <label class="col-sm-2 control-label">名称</label>
+                <div class="col-sm-5">
+                    <input type="text" value="{$row.name}" name="name" class="form-control">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">分类</label>
+                <div class="col-sm-2">
+                    <select name="category_id" class="form-control">
+	                    <option value="">-</option>
+                        {$categories|raw}
+                    </select>
+                </div>
+            </div>
+	        {if count($shops)}
+            <div class="form-group">
+                <label class="col-sm-2 control-label">店铺</label>
+                <div class="col-sm-2">
+                    <select name="shop_id" class="form-control col-selectpicker" search="true">
+	                    <option value="">-</option>
+                        {foreach $shops as $g}
+                        <option {if $row.shop_id==$g.id}selected{/if} value="{$g.id}">{$g.name}</option>
+                        {/foreach}
+                    </select>
+                </div>
+            </div>
+	        {/if}
+	        {if count($brands)}
+            <div class="form-group">
+                <label class="col-sm-2 control-label">品牌</label>
+                <div class="col-sm-2">
+                    <select name="brand_id" class="form-control">
+	                    <option value="">-</option>
+                        {foreach $brands as $g}
+                        <option {if $row.brand_id==$g.id}selected{/if} value="{$g.id}">{$g.name}</option>
+                        {/foreach}
+                    </select>
+                </div>
+            </div>
+	        {/if}
+	        
+	        
+            <div class="form-group">
+                <label class="col-sm-2 control-label">主图</label>
+                <div class="col-sm-3">
+                    <div class="col-file" data-name="pic" data-item="{$row.pic}"></div>
+                </div>
+				<span class="col-line">图片比例 1:1</span>
+            </div>
+            <div class="form-group" id="file">
+                <label class="col-sm-2 control-label">广告图</label>
+                <div class="col-sm-3">
+	                <div class="col-file" data-name="ad_pic" data-item="{$row.ad_pic}"></div>
+                </div>
+				<span class="col-line">图片比例 2:1</span>
+            </div>
+			<div class="form-group">
+				<label class="col-sm-2 control-label">图片相册</label>
+                <div class="col-sm-3">
+	                <div class="col-file" data-url="{:url('upload/image')}" data-name="pics" data-text="选择相册图片" data-before="checkAlbum" data-callback="setAlbum"></div>
+                </div>
+				<span class="col-line">图片比例 1:1</span>
+			</div>
+			<div class="form-group">
+                <div class="col-sm-offset-2 col-sm-10 album">
+	                {if count($pics)}
+					{foreach $pics as $g}
+					<div>
+						<span title="拖动改变顺序">≡</span>
+						<a href="{$g.pic}" target="_blank"></a>
+						<input type="hidden" name="pics[]" value="{$g.pic}" />
+						<input type="text" name="memos[]" placeholder="图片说明" value="{$g.memo}" />
+						<input type="text" name="videos[]" placeholder="视频网址" value="{$g.video}" />
+						<a href="javascript:void(0)" onclick="deletePic(this)"></a>
+					</div>
+					{/foreach}
+					{/if}
+                </div>
+			</div>
+	        
+	        
+			<div class="form-group">
+				<label class="col-sm-2 control-label">商品规格</label>
+				<div class="col-sm-10">
+					<div class="col-sm-12 no-pd-l">
+						<div class="mul-group spec-group">
+							<div class="mul-group-row spec-row">
+								{if count($spec)}
+								{foreach $spec as $g}
+								<div class="mul-list spec-list">
+									<div class="form-group">
+										<label class="col-sm-1 control-label">规格名</label>
+										<div class="col-sm-11 no-padding">
+											<div class="col-sm-2 no-pd-r">
+												<input type="text" class="spec-field spec-name form-control" spec_id="{$g.spec_id}" parent_id="0" value="{$g.name}" />
+												<input type="hidden" name="spec_id[]" value="{$g.spec_id}" />
+											</div>
+											<a href="javascript:void(0)" class="del far fa-times-circle" parent="spec-list"></a>
+										</div>
+									</div>
+									<div class="form-group">
+										<label class="col-sm-1 control-label">规格值</label>
+										<div class="col-sm-11 no-padding">
+											<div class="col-sm-12 no-padding">
+												{if count($g.sub)}
+												{foreach $g.sub as $s}
+												<div class="col-sm-2 no-pd-r">
+													<input type="text" class="spec-field spec-subname form-control" spec_id="{$s.spec_id}" parent_id="{$s.parent_id}" value="{$s.name}" />
+													<input type="hidden" name="spec_subid[]" value="{$s.spec_id}" />
+													<a href="javascript:void(0)" class="del far fa-times-circle" parent="col-sm-2"></a>
+												</div>
+												{/foreach}
+												{/if}
+												<a href="javascript:void(0)" class="col-line add" parent_id="{$g.spec_id}">添加规格值</a>
+											</div>
+										</div>
+									</div>
+								</div>
+								{/foreach}
+								{/if}
+							</div>
+							<div class="mul-toolbar spec-toolbar">
+								<button type="button" class="btn btn-info btn-sm" {if is_array($spec) && count($spec)>=3}disabled{/if}>
+									<i class="ace-icon fa fa-plus"></i> 添加规格项目
+								</button>
+							</div>
+						</div>
+					</div>
+					<span class="col-line">如有颜色、尺码等多种规格，请添加商品规格</span>
+				</div>
+			</div>
+			<div class="form-group spec-detail hidden">
+				<label class="col-sm-2 control-label">规格明细</label>
+				<div class="col-sm-10">
+					<div class="col-sm-12 no-pd-l">
+						<div class="spec-table col-sm-12 no-pd-l"></div>
+					</div>
+				</div>
+			</div>
+	  
+	  
+			<div class="form-group">
+				<label class="col-sm-2 control-label">价格</label>
+				<div class="col-sm-5 no-padding">
+					<div class="col-sm-2">
+						<input type="text" id="price" name="price" value="{if $row.price>0}{$row.price}{/if}" class="form-control" />
+					</div>
+					<span class="col-item">元</span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-2 control-label">促销价</label>
+				<div class="col-sm-5 no-padding">
+					<div class="col-sm-2">
+						<input type="text" id="promote_price" name="promote_price" value="{if $row.promote_price>0}{$row.promote_price}{/if}" class="form-control" />
+					</div>
+					<span class="col-item">元</span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-2 control-label">促销时间</label>
+				<div class="col-sm-10 no-pd-l">
+					<div class="col-sm-2" id="promote_begin_time">
+						<input type="text" name="promote_begin_time" value="{if $row.promote_begin_time>0}{:date('Y-m-d H:i', $row.promote_begin_time)}{/if}" class="form-control col-datepicker" parent="#promote_begin_time" data-readonly="false" />
+					</div>
+					<span class="col-line">-</span>
+					<div class="col-sm-2" id="promote_end_time">
+						<input type="text" name="promote_end_time" value="{if $row.promote_end_time>0}{:date('Y-m-d H:i', $row.promote_end_time)}{/if}" class="form-control col-datepicker" parent="#promote_end_time" data-readonly="false" />
+					</div>
+					<span class="col-line">不填即永久促销</span>
+				</div>
+			</div>
+	        <div class="form-group">
+				<label class="col-sm-2 control-label">库存</label>
+				<div class="col-sm-5 no-padding">
+					<div class="col-sm-2">
+						<input type="text" id="stocks" name="stocks" value="{$row.stocks}" class="form-control" />
+					</div>
+					<span class="col-line">库存为 0 时，会移到『下架』的商品列表里，保存后买家看到的商品可售库存会同步更新</span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-2 control-label">库存报警数量</label>
+				<div class="col-sm-5 no-padding">
+					<div class="col-sm-2">
+						<input type="text" id="stock_alert_number" name="stock_alert_number" value="{$row.stock_alert_number}" class="form-control" />
+					</div>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-2 control-label">市场价格</label>
+				<div class="col-sm-1 no-padding">
+					<div class="col-sm-9">
+						<input type="text" id="market_price" name="market_price" value="{if $row.market_price>0}{$row.market_price}{/if}" class="form-control" />
+					</div>
+					<span class="col-item">元</span>
+				</div>
+				<span class="col-line">(划线价)</span>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-2 control-label">成本价</label>
+				<div class="col-sm-1 no-padding">
+					<div class="col-sm-9">
+						<input type="text" id="cost_price" name="cost_price" value="{if $row.cost_price>0}{$row.cost_price}{/if}" class="form-control" />
+					</div>
+					<span class="col-item">元</span>
+				</div>
+				<span class="col-line">成本价未来会用于营销建议，利润分析等</span>
+			</div>
+	  
+	  
+			<div class="form-group grade-container">
+				<textarea id="gradeprices" class="hidden">{if count($grades)}{:json_encode($grades)}{/if}</textarea>
+				<label class="col-sm-2 control-label">等级会员价</label>
+				<div class="col-sm-10">
+					<div class="col-sm-12 no-pd-l">
+						{if count($grades)}
+						<div class="mul-group grade-group">
+							<div class="mul-group-row grade-row">
+								{if count($gradeprices)}
+								{foreach $gradeprices as $g}
+								<div class="mul-list grade-list">
+									<div class="form-group">
+										<div class="col-sm-12 no-padding">
+											<div class="col-sm-2 no-pd-r">
+												<select name="grade_id[]" class="form-control">
+												<option value="">选择等级</option>
+												{foreach $grades as $gr}
+												<option value="{$gr.id}" {if $g.grade_id==$gr.id}selected{/if}>{$gr.name}</option>
+												{/foreach}
+												</select>
+											</div>
+											<div class="col-sm-2">
+												<input type="tel" name="grade_price[]" value="{$g->price}" placeholder="价格" class="form-control" />
+											</div>
+											<a href="javascript:void(0)" class="del far fa-times-circle"></a>
+										</div>
+									</div>
+								</div>
+								{/foreach}
+								{/if}
+							</div>
+							<div class="mul-toolbar grade-toolbar">
+								<button type="button" class="btn btn-info btn-sm"><i class="ace-icon fa fa-plus"></i> 添加会员价</button>
+							</div>
+						</div>
+						{else}
+						<div class="col-block">请先添加<a href="{:url('member/grade')}" target="_blank" class="iframe-layer">会员等级</a>，添加后<a href="javascript:void(0)">刷新</a></div>
+						{/if}
+					</div>
+				</div>
+			</div>
+	        
+	        
+			<div class="form-group params-container">
+				<label class="col-sm-2 control-label">参数</label>
+				<div class="col-sm-10">
+					<div class="col-sm-12 no-pd-l">
+						<div class="mul-group params-group">
+							<div class="mul-group-row params-row">
+								{if is_array($row.params)}
+								{foreach $row.params as $g}
+								<div class="mul-list params-list">
+									<div class="form-group">
+										<div class="col-sm-12 no-padding">
+											<div class="col-sm-2">
+												<input type="text" name="params_name[]" value="{$g.name}" placeholder="名称" class="form-control" />
+											</div>
+											<div class="col-line">：</div>
+											<div class="col-sm-2">
+												<input type="text" name="params_value[]" value="{$g.value}" placeholder="数值" class="form-control" />
+											</div>
+											<a href="javascript:void(0)" class="del far fa-times-circle"></a>
+										</div>
+									</div>
+								</div>
+								{/foreach}
+								{/if}
+							</div>
+							<div class="mul-toolbar params-toolbar">
+								<button type="button" class="btn btn-info btn-sm"><i class="ace-icon fa fa-plus"></i> 添加参数</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+	  
+	  
+			<div class="form-group commission-container">
+				<label class="col-sm-2 control-label">佣金分利</label>
+				<div class="col-sm-10">
+					<div class="form-group">
+						<div class="col-sm-10">
+							<input type="radio" data-type="radio" data-text="关闭" name="commission_type" value="0" {if $row.commission_type==0}checked{/if} />
+							<input type="radio" data-type="radio" data-text="百分比(%)" name="commission_type" value="1" {if $row.commission_type==1}checked{/if} />
+							<input type="radio" data-type="radio" data-text="固定金额(￥)" name="commission_type" value="2" {if $row.commission_type==2}checked{/if} />
+						</div>
+					</div>
+					<div class="col-sm-12 no-pd-l">
+						<div class="mul-group commission-group">
+							<div class="mul-group-row commission-row">
+								{if is_array($row.commissions)}
+								{foreach $row.commissions as $i=>$g}
+								<div class="mul-list commission-list">
+									<div class="form-group">
+										<label class="col-sm-1 control-label">{$i+1}级分利</label>
+										<div class="col-sm-11 no-padding">
+											<div class="col-sm-2">
+												<input type="text" name="commissions[]" value="{$g}" class="form-control" />
+											</div>
+											<a href="javascript:void(0)" class="del far fa-times-circle"></a>
+										</div>
+									</div>
+								</div>
+								{/foreach}
+								{/if}
+							</div>
+							<div class="mul-toolbar commission-toolbar">
+								<button type="button" class="btn btn-info btn-sm" {if is_array($row.commissions) && count($row.commissions)>=3}disabled{/if}>
+									<i class="ace-icon fa fa-plus"></i> 添加分利
+								</button>
+							</div>
+						</div>
+					</div>
+					<span class="col-inline">只可填数字(包括小数)，一般情况下级数越高分利越低</span>
+				</div>
+			</div>
+	        
+	        
+	        <div class="{if $row.type>0}hidden{/if}">
+			<div class="form-group">
+				<label class="col-sm-2 control-label">是否包邮</label>
+				<div class="col-sm-10">
+					<input type="radio" data-type="radio" data-text="否" name="free_shipping" value="0" class="free_shipping" {if $row.free_shipping==0}checked{/if} />
+					<input type="radio" data-type="radio" data-text="是" name="free_shipping" value="1" class="free_shipping" {if $row.free_shipping==1}checked{/if} />
+				</div>
+			</div>
+			<div class="form-group fee-group {if $row.free_shipping==1}hidden{/if}">
+				<label class="col-sm-2 control-label">快递运费</label>
+				<div class="col-sm-10">
+					<div class="form-group">
+						<div class="col-sm-5">
+							<input type="radio" data-type="radio" data-text="统一运费" name="shipping" class="shipping" value="0" {if $row.shipping_fee>0 || ($row.shipping_fee==0 && $row.shipping_fee_id==0)}checked{/if} />
+							<div class="col-sm-2 no-padding">
+								<input type="tel" id="shipping_fee" name="shipping_fee" value="{$row.shipping_fee}" class="form-control" />
+							</div>
+							<span class="col-item">元</span>
+						</div>
+					</div>
+					<div class="form-group">
+						<div class="col-sm-5">
+							<input type="radio" data-type="radio" data-text="运费模板" name="shipping" class="shipping" value="1" {if $row.shipping_fee_id>0}checked{/if} />
+							<div class="col-sm-3 no-padding">
+								<select class="selectpicker form-control" id="shipping_fee_id" name="shipping_fee_id" search="true" {if !count($shipping)}disabled{/if}>
+									{if count($shipping)}
+									<option value=""></option>
+									{foreach $shipping as $g}
+									<option value="{$g.id}" type="{$g.type}" {if $row.shipping_fee_id==$g.id}selected{/if}>{if $g.type==0}按重：{else}按件：{/if}{$g.name}</option>
+									{/foreach}
+									{else}
+									<option value="">暂无运费模板</option>
+									{/if}
+								</select>
+							</div>
+							<span class="col-line">
+								<a href="javascript:void(0)" class="get_shipping">刷新</a> | <a href="{:url('goods/shipping_edit')}" target="_blank" class="iframe-layer">新建</a> | <a href="{:url('goods/shipping')}" target="_blank" class="iframe-layer">模板管理</a>
+							</span>
+						</div>
+					</div>
+					<div class="form-group weight-group hidden">
+						<div class="col-sm-5">
+							<span class="col-inline">商品重量</span>
+							<div class="col-sm-3 no-padding">
+								<input type="tel" id="weight" name="weight" value="{$row.weight}" class="form-control" />
+							</div>
+							<span class="col-item">KG</span>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="form-group fee-group {if $row.free_shipping==1}hidden{/if}">
+				<label class="col-sm-2 control-label">运费促销</label>
+				<div class="col-sm-5 col-sm-no-padding">
+					<span class="col-inline">购买</span>
+					<div class="col-sm-2">
+						<input type="tel" id="free_shipping_count" name="free_shipping_count" value="{if $row.free_shipping_count>0}{$row.free_shipping_count}{/if}" class="form-control" />
+					</div>
+					<span class="col-line">件起包邮</span>
+					<span class="col-line">为空即不进行运费促销</span>
+				</div>
+			</div>
+			</div>
+	        
+	        
+			<div class="form-group">
+				<label class="col-sm-2 control-label">简要描述</label>
+				<div class="col-sm-5">
+					<input type="text" id="description" name="description" value="{$row.description}" class="form-control" />
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-2 control-label">扩展属性</label>
+				<div class="col-sm-10">
+					<input type="checkbox" data-type="checkbox" data-text="推荐" name="ext_property[]" value="1" {if strpos(','.$row.ext_property.',', ',1,')!==false}checked{/if} />
+					<input type="checkbox" data-type="checkbox" data-text="热销" name="ext_property[]" value="2" {if strpos(','.$row.ext_property.',', ',2,')!==false}checked{/if} />
+					<input type="checkbox" data-type="checkbox" data-text="精品" name="ext_property[]" value="3" {if strpos(','.$row.ext_property.',', ',3,')!==false}checked{/if} />
+					<input type="checkbox" data-type="checkbox" data-text="新品" name="ext_property[]" value="4" {if strpos(','.$row.ext_property.',', ',4,')!==false}checked{/if} />
+					<input type="checkbox" data-type="checkbox" data-text="折扣" name="ext_property[]" value="5" {if strpos(','.$row.ext_property.',', ',5,')!==false}checked{/if} />
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-2 control-label">排序</label>
+				<div class="col-sm-5 no-padding">
+					<div class="col-sm-2">
+						<input type="text" name="sort" id="sort" value="{$row.sort}" class="form-control" />
+					</div>
+					<span class="col-line">数字越小，排在越前</span>
+				</div>
+			</div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">上架形式</label>
+                <div class="col-sm-8 col-sm-no-padding">
+	                <div class="col-sm-12">
+		                <div class="form-group">
+			                <div class="col-sm-5">
+				                <input type="radio" data-type="radio" data-text="立即上架销售" {if $row.status==1}checked{/if} name="status" class="status" value="1" />
+			                </div>
+		                </div>
+		                <div class="form-group">
+			                <div class="col-sm-2">
+				                <input type="radio" data-type="radio" data-text="自定义上架时间" {if $row.status==-1}checked{/if} name="status" class="status" value="-1" />
+			                </div>
+			                <div class="col-sm-2 {if $row.status!=-1}hidden{/if}" id="release_times">
+				                <input type="text" name="release_time" value="{if $row.release_time>0}{:date('Y-m-d H:i', $row.release_time)}{/if}" class="form-control col-datepicker release_time" parent="#release_times" data-readonly="false" />
+			                </div>
+		                </div>
+		                <div class="form-group">
+			                <div class="col-sm-5">
+				                <input type="radio" data-type="radio" data-text="暂不售卖，放入仓库 (下架)" {if $row.status==0}checked{/if} name="status" class="status" value="0" />
+			                </div>
+		                </div>
+	                </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">商品详情</label>
+                <div class="col-sm-4">
+	                <textarea class="form-control ckeditor hidden" name="content">{$row.content}</textarea>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <div class="col-sm-offset-2 col-sm-10">
+                    <button type="button" data-url="{:url('goods/edit')}" onclick="main.ajaxForm(this)" class="btn btn-primary">提交</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</section>
+{/block}
+
+
+{block name="footer"}
+{assign name="goods_image_num" value=":\app\model\Config::get('goods_image_num')"}
+{assign name="goods_spec_num" value=":\app\model\Config::get('goods_spec_num')"}
+{assign name="goods_commission_num" value=":\app\model\Config::get('goods_commission_num')"}
+<script>
+//相册
+function checkAlbum(){
+	if ($('.album').children().length >= Number('{$goods_image_num}')) {
+		alert('图片不可超过{$goods_image_num}张');
+		return false;
+	}
+	$.overload();
+}
+function setAlbum(json){
+	let src = json.data[0];
+	let html = '<div>\
+	<span title="拖动改变顺序">≡</span>\
+	<a href="'+src+'" target="_blank"></a>\
+	<input type="hidden" name="pics[]" value="'+src+'" />\
+	<input type="text" name="memos[]" placeholder="图片说明" />\
+	<input type="text" name="videos[]" placeholder="视频网址" />\
+	<a href="javascript:void(0)" onclick="deletePic(this)"></a>\
+</div>';
+	$('.album').append(html);
+	if ($('.album').children().length >= Number('{$goods_image_num}')) $('#file').hide();
+	if ($('.album').children().length === 1 && !$('#origin_pic').val().length) {
+		$('#origin_pic').val(src).parent().parent().after('<div class="col-control"><a href="'+src+'" target="_blank"><img src="'+src+'" style="height:34px;" onerror="this.src=\'{__STATIC__}/images/nopic.png\'" /></a></div>');
+	}
+	setDragsort();
+}
+function setDragsort(){
+	$('.album').dragsort({
+		dragList : 'div',
+		dragItem : 'span',
+		//lockRange : true,
+		placeHolder : '<div class="hold"></div>',
+		start : function(){
+			$('.hold').html(this.html()).attr('style', this.attr('data-style')).css({
+				width: this.outerWidth(false),
+				height: this.outerHeight(false),
+				opacity: 0.3
+			});
+		},
+		after : function(){
+			if($.browser.mobile)$('.album a[href!="javascript:void(0)"]').photoBrowser();
+		}
+	});
+	if($.browser.mobile)$('.album a[href!="javascript:void(0)"]').photoBrowser();
+	$('.album a[href!="javascript:void(0)"]').loadbackground();
+}
+function deletePic(k){
+	if(!confirm('是否删除？'))return;
+	$(k).parent().remove();
+	if($('.album').children().length<Number('{$goods_image_num}'))$('#file').show();
+}
+
+
+//运费
+function changeFreeShipping(){
+	if(Number($(this).val()) === 1){
+		$('.fee-group').addClass('hidden');
+	}else{
+		$('.fee-group').removeClass('hidden');
+		changeShipping.call($('input.shipping:checked'));
+	}
+}
+function changeShipping(){
+	if(Number($(this).val()) === 0){
+		$('.weight-group').addClass('hidden');
+	}else{
+		selected.call($('#shipping_fee_id'));
+	}
+}
+function selected(){
+	$('.shipping').checked('1');
+	if(!!$(this).selected().attr('type')){
+		if(Number($(this).selected().attr('type')) === 1){
+			$('.weight-group').addClass('hidden');
+		}else{
+			$('.weight-group').removeClass('hidden');
+		}
+	}
+}
+
+
+$(function(){
+	setDragsort();
+	
+	
+	//规格
+	function setSpecDetail(){
+		let specName = $('.spec-name'), hiddenDetail = true;
+		specName.each(function(){
+			let val = $(this).val();
+			if(!val.length)return true;
+			let specSubname = $(this).parents('.form-group').eq(0).next().find('.col-sm-11').find('.spec-subname'), hasVal = false;
+			specSubname.each(function(){
+				if(!$(this).val().length)return true;
+				hasVal = true;
+				return false;
+			});
+			if(!hasVal)return true;
+			hiddenDetail = false;
+			return false;
+		});
+		if(hiddenDetail){
+			specData = {};
+			$('.spec-table').html('');
+			$('.spec-detail').addClass('hidden');
+			$('#price').prop('readonly', false);
+			$('#stocks').prop('readonly', false);
+			$('#promote_price').prop('readonly', false);
+			return;
+		}
+		let specs = specRecursive();
+		let html = '<table>\
+			<thead>\
+				<tr>';
+		specName.each(function(){
+			let val = $(this).val();
+			if(!val.length)return true;
+			let specSubname = $(this).parents('.form-group').eq(0).next().find('.col-sm-11').find('.spec-subname'), hasVal = false;
+			specSubname.each(function(){
+				if(!$(this).val().length)return true;
+				hasVal = true;
+				return false;
+			});
+			if(!hasVal)return true;
+			html += '<th>'+val+'</th>';
+		});
+		html += '<th>价格(元)</th>\
+					<th>库存(件)</th>\
+					<th>促销价(元)</th>\
+					<th>图片(建议800x800)</th>';
+		html += '</tr>\
+			</thead>\
+			<tbody>';
+			$.each(specs, function(){
+				html += '<tr>';
+				let ids = [];
+				$.each(this, function(){
+					ids.push(this.id);
+					html += '<td rowspan="1">'+this.name+'</td>';
+				});
+					html += '<td>\
+						<input type="hidden" name="spec_tree[]" value="'+ids.join(',')+'" />\
+						<input type="text" name="spec_price[]" value="'+(specData['spec_price_'+ids.join('_')]?specData['spec_price_'+ids.join('_')].numberFormat(2):'')+'" combo_id="spec_price_'+ids.join('_')+'" class="width100 spec_price" />\
+					</td>\
+					<td>\
+						<input type="text" name="spec_stock[]" value="'+(specData['spec_stock_'+ids.join('_')]?specData['spec_stock_'+ids.join('_')]:'')+'" combo_id="spec_stock_'+ids.join('_')+'" class="width100 spec_stock" />\
+					</td>\
+					<td>\
+						<input type="text" name="spec_promote[]" value="'+(specData['spec_promote_'+ids.join('_')]?specData['spec_promote_'+ids.join('_')].numberFormat(2):'')+'" combo_id="spec_promote_'+ids.join('_')+'" class="width100 spec_promote" />\
+					</td>\
+					<td>\
+						<a href="javascript:void(0)" class="spec_pic" '+(specData['spec_pic_'+ids.join('_')]?'style="background-image:url('+specData['spec_pic_'+ids.join('_')]+');"':'')+'><i>+</i></a>\
+						<input type="hidden" name="spec_pic[]" value="'+(specData['spec_pic_'+ids.join('_')]?specData['spec_pic_'+ids.join('_')]:'')+'" combo_id="spec_pic_'+ids.join('_')+'" />\
+						<a href="javascript:void(0)" class="copy">复制</a>\
+						<a href="javascript:void(0)" class="paste">粘贴</a>\
+					</td>';
+				html += '</tr>';
+			});
+		html += '</tbody>\
+			<tfoot>\
+				<tr>\
+					<td colspan="'+(specName.length+4)+'">\
+						<div>批量设置</div>\
+						<div class="spec-origin">\
+							<a href="javascript:void(0)" class="spec-price">价格</a>\
+							<a href="javascript:void(0)" class="spec-stock">库存</a>\
+							<a href="javascript:void(0)" class="spec-promote">促销价</a>\
+						</div>\
+						<div class="spec-set hidden">\
+							<input type="tel" class="spec-number width100" />\
+							<a href="javascript:void(0)" class="spec-ok">保存</a>\
+							<a href="javascript:void(0)" class="spec-cancel">取消</a>\
+						</div>\
+					</td>\
+				</tr>\
+			</tfoot>\
+		</table>';
+		$('.spec-table').html(html);
+		let td = $('.spec-table tbody tr:eq(0) td:not(:has(input))');
+		td.sort(function(a, b){
+			let sort1 = $(a).index(), sort2 = $(b).index();
+			if(sort1 < sort2)return 1;
+			if(sort1 > sort2)return -1;
+			return 0;
+		});
+		td.each(function(){
+			setRowspan($(this).index());
+		});
+		$('.spec-detail').removeClass('hidden');
+		$('#price').prop('readonly', true);
+		$('#stocks').prop('readonly', true);
+		$('#promote_price').prop('readonly', true);
+	}
+	function setRowspan(index){
+		let html = '', lastTd = null, count = 1;
+		$('.spec-table tbody tr').each(function(i){
+			let td = $(this).find('td').eq(index), flag = true, h = td.html();
+			if (!lastTd) lastTd = td;
+			if (td.prev().length && $('.spec-table tbody tr').eq(i-1).length) {
+				let prevTrPrevTd = $('.spec-table tbody tr').eq(i-1).find('td').eq(index-1);
+				flag = td.prev().html() === prevTrPrevTd.html();
+			}
+			if (h === html && flag) {
+				count++;
+				td.remove();
+			} else if (html.length) {
+				lastTd.attr('rowspan', count);
+				lastTd = td;
+				count = 1;
+			}
+			if (h === html && i === $('.spec-table tbody tr').length-1) {
+				lastTd.attr('rowspan', count);
+			}
+			html = h;
+		});
+	}
+	let results = [], result = [];
+	function specInterlock(arr, index){
+		for (let i = 0; i < arr[index].length; i++) {
+			result[index] = arr[index][i];
+			if (index < arr.length-1) {
+				specInterlock(arr, index+1);
+			} else {
+				let r = $.jsonString(result);
+				r = $.json(r);
+				results.push(r);
+			}
+		}
+	}
+	function getInterlock(arr){
+		results = [];
+		result = [];
+		specInterlock(arr, 0);
+		return results;
+	}
+	function specRecursive(){
+		let arr = [];
+		$('.spec-list').each(function(){
+			let specSubname = $(this).find('.spec-subname'), obj = [];
+			specSubname.each(function(){
+				let _this = $(this);
+				if (!_this.val().length) return true;
+				obj.push({id:_this.attr('spec_id'), name:_this.val()});
+			});
+			if (obj.length) arr.push(obj);
+		});
+		return getInterlock(arr);
+	}
+	function setShowmenu(callback){
+		let specName = this;
+		$.getJSON('{:url("goods/get_spec_category")}', { parent_id:specName.attr('parent_id') }, function(json){
+			let html = '<ul>';
+			if($.isArray(json.data)){
+				$.each(json.data, function(){
+					html += '<li><a href="javascript:void(0)" spec_id="'+this.id+'">'+this.name+'</a></li>';
+				});
+			}else{
+				html += '<li><span>当前没有匹配项</span></li>';
+			}
+			html += '</ul>';
+			html = $(html);
+			html.find('a').click(function(){
+				specName.val($(this).text()).attr('spec_id', $(this).attr('spec_id'));
+				specName.showmenu(false);
+				specName.blur();
+			});
+			specName.showmenu({
+				cls : 'showmenu',
+				html : html,
+				arrow : false,
+				afterEl : true,
+				on : function(){
+					this.find('a').removeClass('this').each(function(){
+						if(specName.val() === $(this).text())$(this).addClass('this');
+					});
+				}
+			});
+			if (callback) setTimeout(function(){
+				callback();
+			}, 0);
+		});
+	}
+	let specData = {$specData};
+	$('.spec-toolbar button').click(function(){
+		if($('.spec-group .spec-list').length >= Number('{$goods_spec_num}'))return;
+		let html = '<div class="mul-list spec-list">\
+			<div class="form-group">\
+				<label class="col-sm-1 control-label">规格名</label>\
+				<div class="col-sm-11 no-padding">\
+					<div class="col-sm-2 no-pd-r">\
+						<input type="text" class="spec-field spec-name form-control" spec_id="0" parent_id="0" />\
+						<input type="hidden" name="spec_id[]" />\
+					</div>\
+					<a href="javascript:void(0)" class="del far fa-times-circle" parent="spec-list"></a>\
+				</div>\
+			</div>\
+			<div class="form-group">\
+				<label class="col-sm-1 control-label">规格值</label>\
+				<div class="col-sm-11 no-padding"></div>\
+			</div>\
+		</div>';
+		html = $(html);
+		$('.spec-row').append(html);
+		let specName = html.find('.spec-field');
+		setShowmenu.call(specName, function(){
+			specName.focus().onclick()
+		});
+		if($('.spec-group .spec-list').length >= Number('{$goods_spec_num}'))$(this).prop('disabled', true);
+	});
+	$('.spec-group').on('focus', '.spec-field', function(){
+		$(this).data('value', $(this).val());
+	});
+	$('.spec-group').on('blur', '.spec-field', function(){
+		let _this = $(this), parent_id = Number(_this.attr('parent_id')), sub = parent_id===0 ? _this.parents('.form-group').eq(0).next().find('.col-sm-11') : null;
+		if(!_this.val().length){
+			if(parent_id === 0){
+				specData = {};
+				sub.html('');
+			}else{
+				setSpecDetail();
+			}
+			return;
+		}
+		if(!!_this.data('value') && _this.data('value') === _this.val())return;
+		$.postJSON('{:url("goods/set_spec_category")}', { parent_id:parent_id, name:_this.val() }, function(json){
+			if(json.code !== 0){
+				if(parent_id === 0){
+					specData = {};
+					sub.html('');
+				}else{
+					setSpecDetail();
+				}
+				return;
+			}
+			let id = json.data;
+			_this.attr('spec_id', id).next().val(id);
+			if(parent_id === 0){
+				let html = '<a href="javascript:void(0)" class="col-line add" parent_id="'+id+'">添加规格值</a>';
+				sub.html(html);
+				sub.find('.add').click();
+			}else{
+				setSpecDetail();
+			}
+		});
+	});
+	$('.spec-group').on('click', 'a.add', function(){
+		let parent_id = $(this).attr('parent_id');
+		let html = $('<div class="col-sm-2 no-pd-r">\
+			<input type="text" class="spec-field spec-subname form-control" spec_id="0" parent_id="'+parent_id+'" />\
+			<input type="hidden" name="spec_subid[]" />\
+			<a href="javascript:void(0)" class="del far fa-times-circle" parent="col-sm-2"></a>\
+		</div>');
+		$(this).before(html);
+		let specName = html.find('.spec-field');
+		setShowmenu.call(specName, function(){
+			specName.focus().onclick()
+		});
+	});
+	$('.spec-group').on('click', 'a.del', function(){
+		$(this).parents('.'+$(this).attr('parent')).eq(0).remove();
+		if($('.spec-group .spec-list').length<3)$('.spec-toolbar button').prop('disabled', false);
+		setSpecDetail();
+	});
+	$('.spec-table').on('blur', '.spec_price, .spec_promote', function(){
+		$(this).val($(this).val().numberFormat(2));
+	});
+	$('.spec-table').on('click', 'tfoot .spec-origin a', function(){
+		if($(this).is('.spec-price')){
+			$('.spec-number').attr('placeholder', '价格').attr('spec-type', 'price');
+		}else if($(this).is('.spec-stock')){
+			$('.spec-number').attr('placeholder', '库存').attr('spec-type', 'stock');
+		}else if($(this).is('.spec-promote')){
+			$('.spec-number').attr('placeholder', '促销价').attr('spec-type', 'promote');
+		}
+		$('.spec-origin').addClass('hidden');
+		$('.spec-set').removeClass('hidden');
+	});
+	$('.spec-table').on('click', 'tfoot .spec-set a', function(){
+		if($(this).is('.spec-ok')){
+			let type = $('.spec-number').attr('spec-type'), val = $('.spec-number').val();
+			if(type!=='stock')val = val.numberFormat(2);
+			let length = $('.spec_'+type).val(val).length;
+			switch(type){
+				case 'price':$('#price').val(val.numberFormat(2));break;
+				case 'stock':$('#stocks').val(val*length);break;
+				case 'promote':$('#promote_price').val(val.numberFormat(2));break;
+			}
+		}
+		$('.spec-origin').removeClass('hidden');
+		$('.spec-set').addClass('hidden');
+		$('.spec-number').val('');
+	});
+	$('.spec-table').on('input', 'input.spec_price', function(){
+		specData[$(this).attr('combo_id')] = $(this).val();
+		let val = 0;
+		$('.spec-table input.spec_price').each(function(){
+			if(!$(this).val().length || Number($(this).val())<=0)return true;
+			if(val<=0 || val>Number($(this).val()))val = Number($(this).val());
+		});
+		$('#price').val(val.numberFormat(2));
+	});
+	$('.spec-table').on('input', 'input.spec_stock', function(){
+		specData[$(this).attr('combo_id')] = $(this).val();
+		let val = 0;
+		$('.spec-table input.spec_stock').each(function(){
+			if(!$(this).val().length || Number($(this).val())<=0)return true;
+			val += Number($(this).val());
+		});
+		$('#stocks').val(val);
+	});
+	$('.spec-table').on('input', 'input.spec_promote', function(){
+		specData[$(this).attr('combo_id')] = $(this).val();
+		let val = 0;
+		$('.spec-table input.spec_promote').each(function(){
+			if(!$(this).val().length || Number($(this).val())<=0)return true;
+			if(val<=0 || val>Number($(this).val()))val = Number($(this).val());
+		});
+		$('#promote_price').val(val.numberFormat(2));
+	});
+	/*
+	$('.spec-table').on('click', 'input.spec_purchase', function(){
+		if(this.checked){
+			specData[$(this).attr('combo_id')] = 1;
+			$(this).prev().val(1);
+		}else{
+			specData[$(this).attr('combo_id')] = '';
+			$(this).prev().val('');
+		}
+		let stocks = $('#stocks').val().length ? Number($('#stocks').val()) : 0;
+		$('.spec-table input.spec_purchase:checked').each(function(){
+			let s = $(this).parents('tr').find('input.spec_stock').val();
+			if(!s.length)return true;
+			if(Number(s)<stocks || stocks<=0) stocks = Number(s);
+		});
+		$('#purchase_amount').val(stocks).addClass('coo-<='+stocks);
+	});
+	*/
+	$('.spec-table').on('click', 'a.spec_pic', function(){
+		let _this = $(this);
+		_this.ajaxupload({
+			url : '{:url("goods/upload_pic")}',
+			name : 'pic',
+			rightnow : true,
+			before : function(){
+				_this.find('i').addClass('preloader preloader-gray');
+			},
+			callback : function(json){
+				_this.css('background-image', 'url('+json.data+')');
+				_this.next().val(json.data);
+			},
+			complete : function(){
+				this.find('i').removeClass('preloader').removeClass('preloader-gray');
+			}
+		});
+	});
+	$('.spec-table').on('click', 'a.copy', function(){
+		let url = $(this).parent().find('input:hidden').val();
+		if(!url.length){
+			$.overloadError('当前没有图片');
+			return;
+		}
+		$(document.body).data('spec_pic', url);
+		$.overloadSuccess('已复制');
+	});
+	$('.spec-table').on('click', 'a.paste', function(){
+		let url = $(document.body).data('spec_pic');
+		if(!url)return;
+		$(this).parent().find('.spec_pic').css('background-image', 'url('+url+')').next().val(url);
+	});
+	$('.spec-field').each(function(){
+		setShowmenu.call($(this));
+	});
+	if($('.spec-subname').length)setSpecDetail();
+	
+	
+	//等级会员价
+	$('.grade-container').on('click', '.grade-toolbar button', function(){
+		let grade = $.json($('#gradeprices').val());
+		let html = '<div class="mul-list grade-list">\
+			<div class="form-group">\
+				<div class="col-sm-12 no-padding">\
+					<div class="col-sm-2 no-pd-r">\
+						<select name="grade_id[]" class="form-control">\
+						<option value="">选择等级</option>';
+						$.each(grade, function(){
+							html += '<option value="'+this.id+'">'+this.name+'</option>';
+						});
+					html += '</select>\
+					</div>\
+					<div class="col-sm-2">\
+						<input type="tel" name="grade_price[]" placeholder="价格" class="form-control" />\
+					</div>\
+					<a href="javascript:void(0)" class="del far fa-times-circle"></a>\
+				</div>\
+			</div>\
+		</div>';
+		html = $(html);
+		$('.grade-row').append(html);
+	});
+	$('.grade-container').on('click', '.col-block a[href^="javascript:"]', function(){
+		let _this = $(this);
+		$.getJSON('{:url("goods/get_grade_price")}', function(json){
+			if(!$.isArray(json.data))return;
+			$('#gradeprices').val($.jsonString(json.data));
+			let html = '<div class="mul-group grade-group">\
+				<div class="grade-row">\
+					<div class="mul-list grade-list">\
+						<div class="form-group">\
+							<div class="col-sm-12 no-padding">\
+								<div class="col-sm-2 no-pd-r">\
+									<select name="grade_id[]" class="form-control">\
+									<option value="">选择等级</option>';
+									$.each(json.data, function(){
+										html += '<option value="'+this.id+'">'+this.name+'</option>';
+									});
+								html += '</select>\
+								</div>\
+								<div class="col-sm-2">\
+									<input type="tel" name="grade_price[]" placeholder="价格" class="form-control" />\
+								</div>\
+								<a href="javascript:void(0)" class="del far fa-times-circle"></a>\
+							</div>\
+						</div>\
+					</div>\
+				</div>\
+				<div class="mul-toolbar grade-toolbar">\
+					<button type="button" class="btn btn-info btn-sm"><i class="ace-icon fa fa-plus"></i> 添加会员价</button>\
+				</div>\
+			</div>';
+			_this.parent().parent().html(html);
+		});
+	});
+	$('.grade-container').on('click', 'a.del', function(){
+		$(this).parents('.grade-list').eq(0).remove();
+	});
+	
+	
+	//参数
+	$('.params-container').on('click', '.params-toolbar button', function(){
+		let html = '<div class="mul-list params-list">\
+			<div class="form-group">\
+				<div class="col-sm-12 no-padding">\
+					<div class="col-sm-2">\
+						<input type="text" name="params_name[]" placeholder="名称" class="form-control" />\
+					</div>\
+					<div class="col-line">：</div>\
+					<div class="col-sm-2">\
+						<input type="text" name="params_value[]" placeholder="数值" class="form-control" />\
+					</div>\
+					<a href="javascript:void(0)" class="del far fa-times-circle"></a>\
+				</div>\
+			</div>\
+		</div>';
+		html = $(html);
+		$('.params-row').append(html);
+	});
+	$('.params-container').on('click', 'a.del', function(){
+		$(this).parents('.params-list').eq(0).remove();
+	});
+	
+	
+	//佣金分利
+	$('.commission-container').on('click', '.commission-toolbar button', function(){
+		if($('.commission-group .commission-list').length>=Number('{$goods_commission_num}'))return;
+		let i = $('.commission-group .commission-list').length;
+		let html = '<div class="mul-list commission-list">\
+			<div class="form-group">\
+				<label class="col-sm-1 control-label">'+(i+1)+'级分利</label>\
+				<div class="col-sm-11 no-padding">\
+					<div class="col-sm-2">\
+						<input type="text" name="commissions[]" class="form-control" />\
+					</div>\
+					<a href="javascript:void(0)" class="del far fa-times-circle"></a>\
+				</div>\
+			</div>\
+		</div>';
+		html = $(html);
+		$('.commission-row').append(html);
+		if($('.commission-group .commission-list').length >= Number('{$goods_commission_num}'))$(this).prop('disabled', true);
+	});
+	$('.commission-container').on('click', 'a.del', function(){
+		$(this).parents('.commission-list').eq(0).remove();
+		if($('.commission-group .commission-list').length < Number('{$goods_commission_num}'))$('.commission-toolbar button').prop('disabled', false);
+		$('.commission-list').each(function(i){
+			$(this).find('.control-label').html((i+1)+'级分利');
+		});
+	});
+	
+	
+	//运费
+	changeFreeShipping.call($('input.free_shipping:checked'));
+	$('input.free_shipping').click(function(){
+		changeFreeShipping.call(this);
+	});
+	$('input.shipping').click(function(){
+		changeShipping.call(this);
+	});
+	$('#shipping_fee_id').selectpicker({ select:selected });
+	$('.get_shipping').click(function(){
+		let value = $('#shipping_fee_id').selected().val();
+		$.getJSON('{:url("goods/get_shipping")}', function(json){
+			if($.isArray(json.data)){
+				let html = '<option value=""></option>';
+				$.each(json.data, function(){
+					html += '<option value="'+this.id+'" type="'+this.type+'" '+(Number(value)===Number(this.id)?'selected':'')+'>'+(Number(this.type)===0?'按重：':'按件：')+this.name+'</option>';
+				});
+				$('#shipping_fee_id').removeAttr('disabled').html(html).selectpicker({ select:selected });
+			}else{
+				let html = '<option value="">暂无运费模板</option>';
+				$('#shipping_fee_id').attr('disabled', 'disabled').html(html).selectpicker({ select:selected });
+			}
+		});
+	});
+	
+	
+	//状态
+	$('.status').on('change', function(){
+		if(Number($('.status:checked').val()) === -1){
+			$('#release_times').removeClass('hidden');
+			$('.release_time').focus().click();
+		}else{
+			$('#release_times').addClass('hidden');
+		}
+	});
+});
+</script>
+{/block}

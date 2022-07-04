@@ -1,0 +1,75 @@
+{extend name="layout/main" /}
+
+{block name="header"}
+{/block}
+
+{block name="content"}
+<section class="panel">
+    <header class="panel-heading">
+        <h4>退货、退款</h4>
+    </header>
+    <div class="panel-body">
+        <form class="form-block" action="">
+            <div class="form-group">
+                <div class="col-sm-2 no-pd-r">
+                    <input type="text" id="keyword" value="{$Request.get.keyword}" name="keyword" class="form-control" placeholder="关键词">
+                </div>
+	            <div class="col-sm-1">
+                    <button type="submit" class="btn btn-color">搜索</button>
+	            </div>
+            </div>
+        </form>
+        <div class="panel-table">
+	        <table class="table table-bordered table-striped no-margin">
+	            <thead>
+	            <tr>
+	                <th>ID</th>
+	                <th class="text-left">订单号</th>
+					<th>退货(款)人</th>
+					<th>类型</th>
+					<th>金额</th>
+					<th>状态</th>
+					<th>申请时间</th>
+					<th>审核备注</th>
+					<th>审核时间</th>
+	                <th>操作</th>
+	            </tr>
+	            </thead>
+	            <tbody>
+	            {if count($list)}
+	            {foreach $list as $g}
+	            <tr>
+	                <td>{$g.id}</td>
+					<td class="text-left"><a href="{:url('order/edit', ['id'=>$g.order_id])}" target="_blank">{$g.order_sn}</a></td>
+					<td><a href="{:url('member/edit', ['id'=>$g.member_id])}" target="_blank">{$g.name}</a></td>
+					<td>{if $g.type==1}退款{else}退货{/if}</td>
+					<td>{$g.price}</td>
+		            <td>{if $g.status==1}<div class="blue">同意</div>{elseif $g.status==-1}<div class="red">不同意</div>{else}<div class="gray">未审核</div>{/if}</td>
+					<td>{:date('Y-m-d', $g.add_time)}</td>
+					<td>{$g.audit_memo}</td>
+					<td>{if $g.audit_time}{:date('Y-m-d', $g.audit_time)}{/if}</td>
+	                <td>
+	                    <a href="{:url('order/return_edit', ['id'=>$g.id])}" class="btn btn-xs btn-info">审核</a>
+	                    <a data-url="{:url('order/return_delete', ['id'=>$g.id])}" onclick="main.ajaxDelete(this)" data-msg="确定要删除吗？" class="btn btn-xs btn-danger">删除</a>
+	                </td>
+	            </tr>
+	            {/foreach}
+	            {else}
+	            <tr class="text-center">
+	                <td colspan="12">暂无数据</td>
+	            </tr>
+	            {/if}
+	            </tbody>
+	        </table>
+        </div>
+        <div class="page">
+            {$list|raw}
+        </div>
+    </div>
+</section>
+{/block}
+
+
+{block name="footer"}
+
+{/block}

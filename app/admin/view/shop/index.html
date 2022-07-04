@@ -1,0 +1,70 @@
+{extend name="layout/main" /}
+
+{block name="header"}
+{/block}
+
+{block name="content"}
+<section class="panel">
+    <header class="panel-heading">
+	    <a type="button" href="{:url('shop/add')}" class="btn btn-info pull-right">添加商铺</a>
+        <h4>商铺列表</h4>
+    </header>
+    <div class="panel-body">
+        <form class="form-block" action="">
+            <div class="form-group">
+                <div class="col-sm-2 no-pd-r">
+                    <input type="text" id="keyword" value="{$Request.get.keyword}" name="keyword" class="form-control" placeholder="关键词">
+                </div>
+	            <div class="col-sm-1">
+	                <button type="submit" class="btn btn-color">搜索</button>
+	            </div>
+            </div>
+        </form>
+        <div class="panel-table">
+	        <table class="table table-bordered table-striped no-margin">
+	            <thead>
+	            <tr>
+	                <th>ID</th>
+					<th>名称</th>
+					<th>会员</th>
+					<th>联系电话</th>
+					<th>状态</th>
+					<th>添加时间</th>
+					<th>操作</th>
+	            </tr>
+	            </thead>
+	            <tbody>
+	            {if count($list)}
+	            {foreach $list as $g}
+	            <tr>
+	                <td>{$g.id}</td>
+					<td><a href="{:url('shop/edit', ['id'=>$g.id])}">{$g.name}</a></td>
+					<td><a href="{:url('member/edit', ['id'=>$g.member_id])}" target="_blank">{$g.member_name}</a></td>
+					<td>{$g.tel}</td>
+					<td>{if $g.status == -1}冻结{elseif $g.status == 0}等待审核{elseif $g.status == 1}正常{/if}</td>
+	                <td>{:date('Y-m-d H:i', $g.add_time)}</td>
+	                <td>
+	                    <a href="{:url('shop/edit', ['id'=>$g.id])}" class="btn btn-xs btn-info">修改</a>
+	                    <a data-url="{:url('shop/delete', ['id'=>$g.id])}" onclick="main.ajaxDelete(this)" data-msg="确定要删除吗？" class="btn btn-xs btn-danger">删除</a>
+	                </td>
+	            </tr>
+	            {/foreach}
+	            {else}
+	            <tr class="text-center">
+	                <td colspan="10">暂无数据</td>
+	            </tr>
+	            {/if}
+	            </tbody>
+	        </table>
+        </div>
+        <div class="page">
+            {$list|raw}
+        </div>
+    </div>
+</section>
+{/block}
+
+
+{block name="footer"}
+
+{/block}

@@ -1,0 +1,97 @@
+{extend name="layout/main" /}
+
+{block name="header"}
+{/block}
+
+{block name="content"}
+<section class="panel">
+    <header class="panel-heading">
+	    <a type="button" href="{:url('coupon/grant')}" class="btn btn-info pull-right">发放优惠券</a>
+	    <a type="button" href="{:url('coupon/add')}" class="btn btn-info pull-right">添加优惠券</a>
+        <h4>优惠券列表</h4>
+    </header>
+    <div class="panel-body">
+        <form class="form-block" action="">
+            <div class="form-group">
+                <div class="col-sm-2 no-pd-r">
+                    <input type="text" id="keyword" value="{$Request.get.keyword}" name="keyword" class="form-control" placeholder="关键词">
+                </div>
+                <div class="col-sm-1 no-pd-r">
+                    <input type="text" value="{$Request.get.begin_time}" name="begin_time" id="begin_time" class="form-control col-datepicker" data-readonly="false" initdate="" placeholder="开始时间">
+                </div>
+	            <div class="col-gap">-</div>
+                <div class="col-sm-1 no-pd-r">
+                    <input type="text" value="{$Request.get.end_time}" name="end_time" id="end_time" class="form-control col-datepicker" data-readonly="false" initdate="" placeholder="结束时间">
+                </div>
+	            <div class="col-sm-1">
+                    <button type="submit" class="btn btn-color">搜索</button>
+	            </div>
+            </div>
+        </form>
+        <div class="panel-table">
+	        <table class="table table-bordered table-striped no-margin">
+	            <thead>
+	            <tr>
+					<th>ID</th>
+					<th>优惠名称</th>
+					<th>面值</th>
+					<th>使用条件</th>
+					<th>发放总量</th>
+					<th>每人限领数量</th>
+					<th>类型</th>
+					<th>是否限制部分使用</th>
+					<th>状态</th>
+					<th>有效时间</th>
+					<th>添加时间</th>
+					<th>操作</th>
+	            </tr>
+	            </thead>
+	            <tbody>
+	            {if count($list)}
+	            {foreach $list as $g}
+	            <tr>
+	                <td>{$g.id}</td>
+		            <td><a href="{:url('coupon/edit', ['id'=>$g.id])}">{$g.name}</a></td>
+	                <td>{if $g.coupon_money<=0}全额{else}{$g.coupon_money}{/if}</td>
+		            <td>{if $g.min_price>0}满 {$g.min_price} 使用{else}无条件{/if}</td>
+		            <td><a href="{:url('coupon/sn', ['coupon_id'=>$g.id])}" target="_blank">{$g.sn}</a>{if $g.auto_add==1} (自动增加){/if}</td>
+		            <td>{$g.num_per_person}</td>
+		            <td>
+			            {if $g.type==0}商品优惠券
+						{elseif $g.type==1}品牌优惠券
+						{elseif $g.type==2}新人注册券
+						{/if}
+		            </td>
+	                <td>
+		                {if $g.permit_goods>0}是
+						{elseif $g.permit_goods==0}否
+						{/if}
+	                </td>
+					<td>{if $g.status==1}<font class="fa fa-check"></font>{else}<font class="fa fa-close"></font>{/if}</td>
+					<td>{if $g.begin_time>0}{:date('Y-m-d', $g.begin_time)} - {/if}{if $g.end_time>0}{:date('Y-m-d', $g.end_time)}{else}无限期{/if}</td>
+	                <td>{:date('Y-m-d H:i', $g.add_time)}</td>
+	                <td>
+	                    <a href="{:url('coupon/edit', ['id'=>$g.id])}" class="btn btn-xs btn-info">修改</a>
+	                    <a data-url="{:url('coupon/delete', ['id'=>$g.id])}" onclick="main.ajaxDelete(this)" data-msg="确定要删除吗？" class="btn btn-xs btn-danger">删除</a>
+	                </td>
+	            </tr>
+	            {/foreach}
+	            {else}
+	            <tr class="text-center">
+	                <td colspan="12">暂无数据</td>
+	            </tr>
+	            {/if}
+	            </tbody>
+	        </table>
+        </div>
+        <div class="page">
+            {$list|raw}
+        </div>
+    </div>
+</section>
+{/block}
+
+
+{block name="footer"}
+
+{/block}

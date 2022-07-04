@@ -1,0 +1,115 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>发货单</title>
+<script src="{__STATIC__}/gm/vendor/jquery-1.11.1.min.js"></script>
+<link rel="stylesheet" href="{__STATIC__}/gm/bootstrap/css/bootstrap.min.css">
+<link rel="stylesheet" href="{__STATIC__}/gm/css/font-awesome.min.css">
+<link rel="stylesheet" href="{__STATIC__}/gm/css/fontawesome-5.7.2/css/all.css">
+<style>
+body{background:rgb(244, 244, 244);}
+.print{margin:0 auto; width:190mm; text-align:right; padding-top:30px;}
+.print-btn{background:-webkit-linear-gradient(top, #333 0%, #777 100%) !important;
+background:linear-gradient(top, #333 0%, #777 100%) !important;
+box-shadow:2px 2px 5px #777; margin-bottom:5px;}
+.print-btn:hover{background:-webkit-linear-gradient(top, #777 0%, #333 100%) !important;
+background:linear-gradient(top, #777 0%, #333 100%) !important;}
+.print-btn a, .print-btn a:link, .print-btn a:focus, .print-btn a:active{font-size:20px; color:#fff;}
+.print-btn a:hover{color:#fff;}
+.printarea{margin:0 auto; background:#FFF; width:190mm; padding:10mm 10mm 8mm 10mm; color:#333; position:relative; text-align:center;}
+.p{border:dashed 1px #ccc;}
+.table1{text-align:left; width:100%;}
+.table1 tr{line-height:26px;}
+.table1 tr td{font-size:12px;}
+.table2{text-align:left; width:100%; border-top:2px solid #000; border-bottom:2px solid #000;}
+.table2 tr{line-height:40px; border-top:2px solid #000; border-bottom:2px solid #000;}
+.table2 tr td, .table2 tr th{padding-left:10px; font-size:12px;}
+.tr{background:#e7e7e7;}
+tbody th{background:#f7f7f7;}
+.bot{line-height:12px; padding-bottom:5px; padding-top:5px;}
+.bot span{line-height:20px; white-space:nowrap; display:inline-block; width:24%; height:20px; padding:0; margin:0; border:0; overflow:hidden; text-overflow:ellipsis;}
+font{display:block; text-align:left; height:30px; line-height:30px;}
+font span{display:block; float:left; width:50%; font-size:12px; color:#333;}
+</style>
+</head>
+
+<body>
+<div class="print">
+	<div class="print-btn btn btn-lg" id="printbtn"><a href="javascript:void(0);" class="btn">打印 <span class="fas fa-print"></span></a></div>
+</div>
+<div class="printarea p" id="printarea">
+	<h3>发货单</h3>
+	<table class="table1">
+		<tr>
+			<td>收货人：{$row.name}</td>
+			<td>电话：{$row.mobile}</td>
+			<td>&nbsp;</td>
+		</tr>
+		<tr>
+			<td colspan="3">地址：{$row.province}{if $row.province!=$row.city} {$row.city}{/if} {$row.district} {$row.address}</td>
+		</tr>
+		<tr>
+			<td>订单号：{$row.order_sn}</td>
+			<td>下单时间：{:date('Y-m-d H:i:s', $row.add_time)}</td>
+			<td>&nbsp;</td>
+		</tr>
+	</table>
+	<div class="orderprint">
+		<table class="table2" rules="rows">
+			<thead>
+				<tr class="tr">
+					<th>序号</th>
+					<th>商品名称</th>
+					<th>单价({if $row.integral_order==1}积分{else}元{/if})</th>
+					<th>数量</th>
+					<th>小计({if $row.integral_order==1}积分{else}元{/if})</th>
+				</tr>
+			</thead>
+			<tbody>
+				{foreach $goods as $g}
+				<tr>
+					<td>{$g.sort}</td>
+					<td>{$g.goods_name} {$g.spec}</td>
+					<td>{if $row.integral_order==1}{intval($g.price)}{else}￥{$g.price}{/if}</td>
+					<td>{$g.quantity}</td>
+					<td>{if $row.integral_order==1}{:intval($g.price*$g.quantity)}{else}￥{$g.price*$g.quantity}{/if}</td>
+				</tr>
+				{/foreach}
+				<tr>
+					<th>&nbsp;</th>
+					<th colspan="2" class="tl">合计</th>
+					<th>{$total}</th>
+					<th>{if $row.integral_order==1}{:intval($row.total_price)}{else}￥{$row.total_price}{/if}</th>
+				</tr>
+			</tbody>
+			<tfoot>
+				<tr>
+					<th colspan="10" class="bot">
+						<span>总计：{if $row.integral_order==1}{:intval($row.total_price)}{else}￥{$row.total_price}{/if}</span>
+						<span>运费：￥{$row.shipping_price}</span>
+						<span>优惠：￥{$row.discount_price}</span>
+						<span>{if $row.integral_order==1}订单总积分：{:intval($row.total_price - $row.discount_price)}{else}订单总额：￥{$row.total_price - $row.discount_price}{/if}</span>
+						{if count($goods) && $goods[0]['shop_name']}<span>店铺：{$goods[0]['shop_name']}</span>{/if}
+					</th>
+				</tr>
+			</tfoot>
+		</table>
+		<font><span>快递公司：{$row.shipping_company}</span><span>快递单号：{$row.shipping_number}</span></font>
+	</div>
+</div>
+</body>
+</html>
+<script>
+$(function(){
+	$('#printbtn').click(function(){
+		$('.print-btn').hide();
+		$('.printarea').removeClass('p');
+		window.print();
+		setTimeout(function(){
+			$('.print-btn').show();
+			$('.printarea').addClass('p');
+		}, 100);
+	});
+});
+</script>

@@ -1,0 +1,106 @@
+{extend name="layout/main" /}
+
+{block name="header"}
+{/block}
+
+{block name="content"}
+<section class="panel">
+    <header class="panel-heading">
+        <h4>退货、退款审核</h4>
+    </header>
+    <div class="panel-body">
+        <form class="form-horizontal" method="post" onsubmit="return false" role="form">
+	        <input type="hidden" name="id" value="{$row.id}">
+            <div class="form-group">
+                <label class="col-sm-2 control-label">订单号</label>
+                <div class="col-sm-5">
+                    <div class="col-block">
+	                    <a href="{:url('order/edit', ['id'=>$row.order_id])}" target="_blank">{$row.order_sn}</a>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">{if $row.type==1}退款{else}退货{/if}人</label>
+                <div class="col-sm-5">
+                    <div class="col-block">
+	                    <a href="{:url('member/edit', ['id'=>$row.member_id])}" target="_blank">{$row.name}</a>
+                    </div>
+                </div>
+            </div>
+			<div class="form-group">
+				<label class="col-sm-2 control-label">类型</label>
+				<div class="col-sm-5">
+					<div class="col-block">{if $row.type==1}退款{else}退货{/if}</div>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-2 control-label">金额</label>
+				<div class="col-sm-5">
+					<div class="col-block">{$row.price}</div>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-2 control-label">退货\退款理由</label>
+				<div class="col-sm-5">
+					<div class="col-block">{$row.reason}</div>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-2 control-label">退货/退款说明</label>
+				<div class="col-sm-5">
+					<div class="col-block">{$row.memo}</div>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-2 control-label">退货/退款照片</label>
+				<div class="col-sm-10">
+					{if $row.pic1}<a href="{$row.pic1}" target="_blank" style="margin-right:10px;"><img src="{$row.pic1}" onerror="this.src='{__STATIC__}/images/nopic.png'" style="height:50px;" /></a>{/if}
+					{if $row.pic2}<a href="{$row.pic2}" target="_blank" style="margin-right:10px;"><img src="{$row.pic2}" onerror="this.src='{__STATIC__}/images/nopic.png'" style="height:50px;" /></a>{/if}
+					{if $row.pic3}<a href="{$row.pic3}" target="_blank" style="margin-right:10px;"><img src="{$row.pic3}" onerror="this.src='{__STATIC__}/images/nopic.png'" style="height:50px;" /></a>{/if}
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-2 control-label">申请时间</label>
+				<div class="col-sm-5">
+					<div class="col-block">{:date('Y-m-d', $row.add_time)}</div>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-2 control-label">状态</label>
+				<div class="col-sm-2">
+					<select name="status" class="form-control">
+						<option value="0" {if $row.status==0}selected{/if}>未审核</option>
+						<option value="1" {if $row.status==1}selected{/if}>同意</option>
+						<option value="-1" {if $row.status==-1}selected{/if}>不同意</option>
+					</select>
+				</div>
+			</div>
+			{if $row.audit_time}
+			<div class="form-group">
+				<label class="col-sm-2 control-label">审核时间</label>
+				<div class="col-sm-10" id="memo">
+					<div class="col-block">{:date('Y-m-d', $row.audit_time)}</div>
+				</div>
+			</div>
+			{/if}
+			<div class="form-group">
+				<label class="col-sm-2 control-label">审核备注</label>
+				<div class="col-sm-5">
+					<textarea style="height:100px;" name="audit_memo" class="form-control">{$row.audit_memo}</textarea>
+				</div>
+			</div>
+
+            <div class="form-actions">
+                <div class="col-sm-offset-2 col-sm-10">
+                    <button type="submit" data-url="{:url('order/return_edit')}" onclick="main.ajaxForm(this)" class="btn btn-primary">提交</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</section>
+{/block}
+
+
+{block name="footer"}
+
+{/block}

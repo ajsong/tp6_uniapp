@@ -1,0 +1,490 @@
+{extend name="layout/main" /}
+
+{block name="header"}
+<style>
+.modal .modal-dialog{top:50%; margin-top:-260px;}
+@media (min-width: 768px){
+	.modal .modal-dialog{left:50%; margin-left:-300px;}
+}
+
+.col-table{width:100%; height:auto; overflow:auto; overflow-y:hidden;}
+html:not(.col-windows) .col-table::-webkit-scrollbar{width:4px; height:4px;}
+html:not(.col-windows) .col-table::-webkit-scrollbar-track{display:none;}
+html:not(.col-windows) .col-table::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.5); border-radius:2px;}
+.col-table table{border:1px solid #d5d5d5; width:100%; box-sizing:border-box; border-radius:2px;}
+.col-table table th, .col-table table td{text-align:left; padding:10px; font-size:12px; white-space:nowrap;}
+.col-table table thead tr{background:#f6f6f6; border-bottom:1px solid #d5d5d5;}
+.col-table table th{font-size:12px; font-weight:normal;}
+.col-table table td a{font-size:12px;}
+.col-table table td input, .col-table table td select{min-width:100px; height:34px; border:1px solid #e8ecf3; background:#fff; font-size:13px; font-weight:400; border-radius:2px; padding:0 12px; box-sizing:border-box;}
+
+.col-table.area table tr th:not(:first-child), .col-table.area table tr td:not(:first-child){width:100px; text-align:center; box-sizing:border-box;}
+.col-table.area table tbody tr:not(:last-child){border-bottom:1px solid #d5d5d5;}
+.col-table.area table tr th:first-child, .col-table.area table tbody tr:not(:last-child) td:first-child{min-width:300px;}
+.col-table.area table tbody tr:not(:last-child) td:first-child{border-right:1px solid #d5d5d5; white-space:normal;}
+.col-table.area table tbody tr:not(:last-child) td{color:#333;}
+.col-table.area table tbody tr:not(:last-child) td .city{color:#777;}
+.col-table.area table tbody tr:not(:last-child) td .district{color:#aaa;}
+.col-table.area table tbody tr:not(:last-child) td div{float:right;}
+.col-table.area table tbody tr:not(:last-child) td div a{margin-left:5px; color:#00a0e9;}
+.col-table.area table tbody tr:not(:last-child) td input{text-align:center;}
+
+.col-area{padding:0;}
+.col-area > div{width:50%; float:left; border:1px solid #e5e5e5; box-sizing:border-box;}
+.col-area > div:first-child{border-right:none;}
+.col-area > div font, .col-area > div div{position:relative; display:block; height:34px; line-height:34px; text-align:left; font-size:12px; box-sizing:border-box;}
+.col-area > div font{background:#f6f6f6; padding:0 10px; border-bottom:1px solid #e5e5e5; text-align:center;}
+.col-area > div font a{position:absolute; font-size:12px; color:#00a0e9;}
+.col-area > div font a:nth-child(1){right:10px;}
+.col-area > div font a:nth-child(2){left:10px;}
+.col-area > div div{height:330px; box-sizing:border-box; padding:5px 0; overflow:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch;}
+html:not(.col-windows) .col-area > div div::-webkit-scrollbar{width:4px; height:4px;}
+html:not(.col-windows) .col-area > div div::-webkit-scrollbar-track{display:none;}
+html:not(.col-windows) .col-area > div div::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.5); border-radius:2px;}
+.col-area > div div span{position:relative; display:block; height:auto; line-height:30px; overflow:hidden; margin-top:1px; box-sizing:border-box; font-size:12px; cursor:pointer; white-space:nowrap;}
+.col-area > div div span.this{background:#e5e5e5;}
+.col-area > div div span h1{font-size:12px; font-weight:normal; margin:0; padding:0; line-height:30px;}
+.col-area > div div span span i{margin-left:30px;}
+.col-area > div div span span span i{margin-left:50px;}
+.col-area > div div span i{font-style:normal; display:block; width:30px; height:30px; float:left; text-align:center;}
+.col-area > div div span i:before{content:"﹢"; display:block; width:100%; height:100%; font-size:14px; color:#00a0e9;}
+.col-area > div div span i.extend:before{content:"﹣";}
+.col-area > div div span i[disabled]:before{content:"";}
+.col-area > div div span b{display:block; position:absolute; top:7px; right:10px; width:16px; height:16px; line-height:16px; background:#ccc; color:#fff; border-radius:100%; font-size:14px; text-align:center;}
+</style>
+{/block}
+
+{block name="content"}
+<section class="panel">
+    <header class="panel-heading">
+        <h4>{if $row.id>0}修改{else}添加{/if}模板</h4>
+    </header>
+    <div class="panel-body">
+        <form class="form-horizontal" method="post" onsubmit="return false" role="form">
+	        <input type="hidden" name="id" value="{$row.id}">
+            <div class="form-group">
+                <label class="col-sm-2 control-label">模板名称</label>
+                <div class="col-sm-5">
+                    <input type="text" value="{$row.name}" name="name" class="form-control" placeholder="请输入模板名称">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">计费类型</label>
+                <div class="col-sm-8">
+                    <input type="radio" data-type="radio" data-text="按重量" {if $row.type==0}checked{/if} name="type" class="type" value="0">
+                    <input type="radio" data-type="radio" data-text="按件数" {if $row.type==1}checked{/if} name="type" class="type" value="1">
+                </div>
+            </div>
+	        
+	        
+			<div class="form-group">
+				<label class="col-sm-2 control-label">配送区域</label>
+				<div class="col-sm-10">
+					<div class="col-table area">
+						<table>
+							<thead>
+								<tr>
+									<th>可配送区域</th>
+									<th class="first">首重(KG)</th>
+									<th>运费(元)</th>
+									<th class="second">续重(KG)</th>
+									<th>续费(元)</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td><font>默认所有地区配送</font></td>
+									<td><input type="tel" name="default_first" value="{$row.first}" /></td>
+									<td><input type="tel" name="default_first_price" value="{$row.first_price}" /></td>
+									<td><input type="tel" name="default_second" value="{$row.second}" /></td>
+									<td><input type="tel" name="default_second_price" value="{$row.second_price}" /></td>
+								</tr>
+								{foreach $area as $g}
+								<tr>
+									<td><font></font><div><a href="javascript:void(0)">修改</a><a href="javascript:void(0)">删除</a></div>
+									<input type="hidden" name="districts[]" value="{$g.districts}" class="districts" /></td>
+									<td><input type="tel" name="first[]" value="{$g.first}" /></td>
+									<td><input type="tel" name="first_price[]" value="{$g.first_price}" /></td>
+									<td><input type="tel" name="second[]" value="{$g.second}" /></td>
+									<td><input type="tel" name="second_price[]" value="{$g.second_price}" /></td>
+								</tr>
+								{/foreach}
+								<tr>
+									<td colspan="5"><a href="javascript:void(0)">指定可配送区域和运费</a></td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+
+	        
+            <div class="form-actions">
+                <div class="col-sm-offset-2 col-sm-10">
+                    <button type="submit" data-url="{:url('goods/shipping_edit')}" onclick="main.ajaxForm(this)" class="btn btn-primary">提交</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</section>
+
+<div class="modal fade" id="to-area" role="dialog" aria-labelledby="gridSystemModalLabel">
+	<div class="modal-dialog row" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				选择可配送区域
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+			</div>
+			<div class="modal-body">
+				<div class="container-fluid col-area">
+					<div class="origin"><font><a href="javascript:void(0)">添加</a><a href="javascript:void(0)">全国</a>可选省市区</font><div></div></div>
+					<div class="target"><font><a href="javascript:void(0)">清空</a>已选省市区</font><div></div></div>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-danger" data-dismiss="modal"> 取消 </button>
+				<button type="button" class="btn btn-primary get-to"> 确定 </button>
+			</div>
+		</div>
+	</div>
+</div>
+{/block}
+
+
+{block name="footer"}
+<script src="{__STATIC__}/gm/bootstrap/js/bootstrap.js"></script>
+<script>
+let areaData = {$province|raw};
+function changeType(){
+	let val = Number($(this).val());
+	if(val === 0){
+		$('.first').html('首重(KG)');
+		$('.second').html('续重(KG)');
+	}else{
+		$('.first').html('首件(个)');
+		$('.second').html('续件(个)');
+	}
+}
+function setArea(data, isOrigin){
+	let html = '';
+	$.each(data, function(){
+		let province = this.id;
+		html += '<span aid="'+this.id+'" subcount="'+this.subcount+'" type="province">'+(!isOrigin?'<b>×</b>':'')+'<i'+((!isOrigin&&this.sub.length)?' class="extend"':'')+(this.sub.length?'':' disabled')+'></i><h1>'+this.name+'</h1>';
+		$.each(this.sub, function(){
+			let city = this.id;
+			html += '<span aid="'+this.id+'" subcount="'+this.subcount+'" province="'+province+'" type="city"'+(isOrigin?' class="hidden"':'')+'>'+(!isOrigin?'<b>×</b>':'')+'<i'+((!isOrigin&&this.sub.length)?' class="extend"':'')+(this.sub.length?'':' disabled')+'></i><h1>'+this.name+'</h1>';
+			$.each(this.sub, function(){
+				html += '<span aid="'+this.id+'" province="'+province+'" city="'+city+'" type="district"'+(isOrigin?' class="hidden"':'')+'>'+(!isOrigin?'<b>×</b>':'')+'<i disabled></i><h1>'+this.name+'</h1></span>';
+			});
+			html += '</span>';
+		});
+		html += '</span>';
+	});
+	if(isOrigin){
+		$('#to-area .origin div').html(html);
+	}else{
+		$('#to-area .target div').html(html);
+	}
+}
+function addElement(els){
+	let _this = $(this), type = _this.attr('type'), obj = { id:_this.attr('aid'), name:_this.children('h1').text() };
+	let hasProvince = false, province = null;
+	switch(type){
+		case 'province':
+			obj.subcount = _this.attr('subcount');
+			obj.sub = [];
+			els.push(obj);
+			break;
+		case 'city':
+			obj.subcount = _this.attr('subcount');
+			obj.sub = [];
+			hasProvince = false;
+			province = Number(_this.attr('province'));
+			$.each(els, function(){
+				if(province === Number(this.id)){
+					hasProvince = true;
+					let exist = false;
+					$.each(this.sub, function(){
+						if(Number(obj.id) === Number(this.id)){
+							exist = true;
+							return false;
+						}
+					});
+					if(!exist){
+						this.sub.push(obj);
+						this.sub.sort(function(a, b){
+							let sort1 = Number(a.id), sort2 = Number(b.id);
+							if(sort1<sort2)return -1;
+							if(sort1>sort2)return 1;
+							return 0;
+						});
+					}
+					return false;
+				}
+			});
+			if(!hasProvince){
+				let _province = _this.parent(),
+					provinceObj = { id:_province.attr('aid'), name:_province.children('h1').text(), subcount:_province.attr('subcount'), sub:[obj] };
+				els.push(provinceObj);
+			}
+			break;
+		case 'district':
+			hasProvince = false;
+			province = Number(_this.attr('province'));
+			let hasCity = false, city = Number(_this.attr('city'));
+			$.each(els, function(){
+				if(province === Number(this.id)){
+					hasProvince = true;
+					$.each(this.sub, function(){
+						if(city === Number(this.id)){
+							hasCity = true;
+							this.sub.push(obj);
+							this.sub.sort(function(a, b){
+								let sort1 = Number(a.id), sort2 = Number(b.id);
+								if(sort1<sort2)return -1;
+								if(sort1>sort2)return 1;
+								return 0;
+							});
+							return false;
+						}
+					});
+					if(!hasCity){
+						let _city = _this.parent(),
+							cityObj = { id:_city.attr('aid'), name:_city.children('h1').text(), subcount:_city.attr('subcount'), sub:[obj] };
+						this.sub.push(cityObj);
+						this.sub.sort(function(a, b){
+							let sort1 = Number(a.id), sort2 = Number(b.id);
+							if(sort1<sort2)return -1;
+							if(sort1>sort2)return 1;
+							return 0;
+						});
+					}
+					return false;
+				}
+			});
+			if(!hasProvince){
+				let _city = _this.parent(), _province = _city.parent(),
+					cityObj = { id:_city.attr('aid'), name:_city.children('h1').text(), subcount:_city.attr('subcount'), sub:[obj] },
+					provinceObj = { id:_province.attr('aid'), name:_province.children('h1').text(), subcount:_province.attr('subcount'), sub:[cityObj] };
+				els.push(provinceObj);
+			}
+			break;
+	}
+	els.sort(function(a, b){
+		let sort1 = Number(a.id), sort2 = Number(b.id);
+		if(sort1<sort2)return -1;
+		if(sort1>sort2)return 1;
+		return 0;
+	});
+}
+function getNames(ids){
+	ids = ids.split(',');
+	let names = [], allcount = 0;
+	$('#to-area .origin div span[type="province"] > span').each(function(){
+		allcount += Number($(this).attr('subcount'));
+	});
+	if(allcount === ids.length){
+		names.push('<span class="province">全国</span>');
+	}else{
+		let expr = [];
+		$.each(ids, function(){
+			let province = $('#to-area .origin div span[aid="'+this+'"]').attr('province');
+			expr.push('#to-area .origin div span[aid="'+province+'"]');
+		});
+		$(expr.join(',')).each(function(){
+			let _this = $(this), html = '';
+			if(Number(_this.attr('subcount')) === _this.find('span').length){
+				html = '<span class="province">'+_this.children('h1').text()+'</span>';
+			}else{
+				html = '<span class="province">'+_this.children('h1').text()+'</span><span class="city">(';
+				_this.children('span').each(function(){
+					if(Number($(this).attr('subcount')) === $(this).find('span').length){
+						html += $(this).children('h1').text()+'、';
+					}else{
+						html += $(this).children('h1').text()+':<span class="district">';
+						$(this).children('span').each(function(){
+							html += $(this).children('h1').text()+',';
+						});
+						html = html.substr(0, html.length-1);
+						html += '</span>、';
+					}
+				});
+				html = html.substr(0, html.length-1);
+				html += ')</span>';
+			}
+			names.push(html);
+		});
+	}
+	return names.join('、');
+}
+function setAction(el){
+	$(el).each(function(){
+		let tr = $(this);
+		tr.find('div a').click(function(){
+			if($(this).index() === 0){
+				setArea(areaData, true);
+				setTimeout(function(){
+					let districts = tr.find('.districts').val().split(','), expr = [];
+					$.each(districts, function(){
+						expr.push('#to-area .origin div span[aid="'+this+'"]');
+					});
+					$(expr.join(',')).addClass('this');
+					$('#to-area .origin font a:eq(0)').click();
+					let area = $('#to-area').modal(), dismiss = $('.modal-header [data-dismiss="modal"]');
+					dismiss.data('modalHide', function(){
+						area.data('bs.modal').hide();
+						dismiss.off('click', dismiss.data('modalHide'));
+					}).on('click', dismiss.data('modalHide'));
+				}, 10);
+			}else{
+				tr.remove();
+			}
+		});
+	});
+}
+function selectedDistrict(){
+	let ids = [];
+	$('#to-area .target div span[type="district"]').each(function(){
+		ids.push($(this).attr('aid'));
+	});
+	$('#to-area .target div').html('');
+	let tr = $('<tr>\
+			<td><font>'+getNames(ids.join(','))+'</font><div><a href="javascript:void(0)">修改</a><a href="javascript:void(0)">删除</a></div>\
+			<input type="hidden" name="districts[]" value="'+ids.join(',')+'" class="districts" /></td>\
+			<td><input type="tel" name="first[]" value="1" /></td>\
+			<td><input type="tel" name="first_price[]" value="0.00" /></td>\
+			<td><input type="tel" name="second[]" value="0" /></td>\
+			<td><input type="tel" name="second_price[]" value="0.00" /></td>\
+		</tr>');
+	$('.area tbody tr:last').before(tr);
+	setAction(tr)
+}
+$(function(){
+	setArea(areaData, true);
+	$('.area tbody tr:not(:first,:last)').each(function(){
+		let ids = $(this).find('.districts').val();
+		$(this).find('font').html(getNames(ids));
+		setAction($(this));
+	});
+	changeType.call($('.type:checked')[0]);
+	$('.type').click(function(){
+		changeType.call(this);
+	});
+	$('.col-table td[colspan] a').click(function(){
+		setArea(areaData, true);
+		let area = $('#to-area').modal(), dismiss = $('.modal-header [data-dismiss="modal"]');
+		dismiss.data('modalHide', function(){
+			area.data('bs.modal').hide();
+			dismiss.off('click', dismiss.data('modalHide'));
+		}).on('click', dismiss.data('modalHide'));
+	});
+	$('#to-area > div div').on('click', 'span', function(e){
+		e = e||event;
+		let _this = $(this), o = e.target||e.srcElement, _o = $(o);
+		if(_o.is('i') && !!!_o.attr('disabled')){
+			let aid = _this.attr('aid'), div = _this.parents('.origin').length ? '.target' : '.origin',
+				shadow = $('#to-area '+div+' div span[aid="'+aid+'"] > i');
+			if(_o.hasClass('extend')){
+				_o.removeClass('extend');
+				_o.siblings('span').addClass('hidden');
+				shadow.removeClass('extend');
+				shadow.siblings('span').addClass('hidden');
+			}else{
+				_o.addClass('extend');
+				_o.siblings('span:not(.selected)').removeClass('hidden');
+				shadow.addClass('extend');
+				shadow.siblings('span:not(.selected)').removeClass('hidden');
+			}
+		}else if(_o.is('b')){
+			let type = _this.attr('type'), origin = $('#to-area .origin div');
+			switch(type){
+				case 'province':
+					let originSpan = origin.find('span[aid="'+_this.attr('aid')+'"]');
+					originSpan.removeClass('selected').removeClass('this').removeClass('hidden')
+					.find('span').removeClass('selected').removeClass('this').removeClass('hidden');
+					_this.remove();
+					break;
+				case 'city':
+					if(!_this.siblings('span').length){
+						let originSpan = origin.find('span[aid="'+_this.parent().attr('aid')+'"]');
+						originSpan.removeClass('selected').removeClass('this').removeClass('hidden')
+						.find('span').removeClass('selected').removeClass('this').removeClass('hidden');
+						_this.parent().remove();
+					}else{
+						let originSpan = origin.find('span[aid="'+_this.attr('aid')+'"]');
+						originSpan.removeClass('selected').removeClass('this').removeClass('hidden')
+						.find('span').removeClass('selected').removeClass('this').removeClass('hidden');
+						originSpan.parent().removeClass('this').removeClass('hidden');
+						_this.remove();
+					}
+					break;
+				case 'district':
+					if(!_this.siblings('span').length){
+						if(!_this.parent().siblings('span').length){
+							let originSpan = origin.find('span[aid="'+_this.parent().parent().attr('aid')+'"]');
+							originSpan.removeClass('selected').removeClass('this').removeClass('hidden')
+							.find('span').removeClass('selected').removeClass('this').removeClass('hidden');
+							_this.parent().parent().remove();
+						}else{
+							let originSpan = origin.find('span[aid="'+_this.parent().attr('aid')+'"]');
+							originSpan.removeClass('selected').removeClass('this').removeClass('hidden')
+							.find('span').removeClass('selected').removeClass('this').removeClass('hidden');
+							_this.parent().remove();
+						}
+					}else{
+						let originSpan = origin.find('span[aid="'+_this.attr('aid')+'"]');
+						originSpan.removeClass('selected').removeClass('this').removeClass('hidden');
+						originSpan.parent().removeClass('this').removeClass('hidden').parent().removeClass('this').removeClass('hidden');
+						_this.remove();
+					}
+					break;
+			}
+		}else if(_o.parents('.origin').length){
+			if(_this.hasClass('this')){
+				_this.removeClass('this');
+				_this.find('span').removeClass('this');
+			}else{
+				_this.addClass('this');
+				_this.find('span').addClass('this');
+			}
+		}
+		return false;
+	});
+	$('#to-area .origin font a:eq(0)').click(function(){
+		if(!$('#to-area .origin div span.this').length){
+			$.overloadError('请先选择省市区');
+			return;
+		}
+		let els = [];
+		$('#to-area .origin div span.this').addClass('selected').addClass('hidden').each(function(){
+			let _this = $(this);
+			_this.siblings('i').addClass('extend');
+			if(_this.parent().is('span') && _this.parent().children('span.hidden').length === Number(_this.parent().attr('subcount'))){
+				_this.parent().addClass('hidden');
+			}
+			addElement.call(_this, els);
+		});
+		setArea(els);
+	});
+	$('#to-area .origin font a:eq(1)').click(function(){
+		if(!$('#to-area .origin div span:not(.selected)').length)return;
+		$('#to-area .origin div span').addClass('selected').addClass('this').addClass('hidden');
+		setArea(areaData);
+	});
+	$('#to-area .target font a:eq(0)').click(function(){
+		if(!$('#to-area .target div span').length)return;
+		$('#to-area .origin div span[type="province"]').removeClass('selected').removeClass('this').removeClass('hidden').find('i').removeClass('extend');
+		$('#to-area .origin div span:not([type="province"])').removeClass('selected').removeClass('this').addClass('hidden');
+		$('#to-area .target div').html('');
+	});
+	$('.get-to').click(function(){
+		if(!$('#to-area .target div span').length){
+			$.overloadError('请先添加省市区');
+			return;
+		}
+		selectedDistrict();
+		$('.modal-header [data-dismiss="modal"]').click();
+	});
+});
+</script>
+{/block}

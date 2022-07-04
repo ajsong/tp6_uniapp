@@ -1,0 +1,140 @@
+{extend name="layout/main" /}
+
+{block name="header"}
+{/block}
+
+{block name="content"}
+<section class="panel">
+    <header class="panel-heading">
+        <h4>盲盒下注单</h4>
+    </header>
+    <div class="panel-body">
+        <form class="form-block" action="">
+            <div class="form-group">
+                <div class="col-sm-2 no-pd-r">
+                    <input type="text" value="{$Request.get.keyword}" name="keyword" class="form-control" placeholder="关键词">
+                </div>
+                <div class="col-sm-1 no-pd-r">
+                    <input type="number" value="{$Request.get.price_min}" name="price_min" class="form-control" placeholder="最少下注数">
+                </div>
+	            <div class="col-gap">~</div>
+                <div class="col-sm-1 no-pd-r">
+                    <input type="number" value="{$Request.get.price_max}" name="price_max" class="form-control" placeholder="最多下注数">
+                </div>
+                <div class="col-sm-1 no-pd-r">
+                    <select name="day" class="form-control">
+                        <option value="">天数</option>
+                        {foreach $days as $g}
+                        <option {if $Request.get.day==$g}selected{/if} value="{$g}">{$g}天</option>
+                        {/foreach}
+                    </select>
+                </div>
+                <div class="col-sm-1 no-pd-r">
+                    <select name="status" class="form-control">
+                        <option value="">状态</option>
+                        <option {if $Request.get.status=='0'}selected{/if} value="0">未生效</option>
+                        <option {if $Request.get.status=='1'}selected{/if} value="1">进行中</option>
+                        <option {if $Request.get.status=='2'}selected{/if} value="2">已过期</option>
+                    </select>
+                </div>
+                <div class="col-sm-1 no-pd-r">
+                    <input type="text" value="{$Request.get.begin_time}" name="begin_time" id="begin_time" class="form-control" placeholder="开始时间">
+                </div>
+                <div class="col-sm-1 no-pd-r">
+                    <input type="text" value="{$Request.get.end_time}" name="end_time" id="end_time" class="form-control" placeholder="结束时间">
+                </div>
+	            <div class="col-sm-1">
+                    <button type="submit" class="btn btn-color">搜索</button>
+	            </div>
+            </div>
+        </form>
+	    <div class="panel-table">
+	        <table class="table table-bordered table-striped no-margin">
+	            <thead>
+	            <tr>
+	                <!--<th>ID</th>-->
+	                <th class="text-left">账号</th>
+	                <th>编号</th>
+	                <th data-sortby="price">下注数</th>
+	                <th>收益百分比</th>
+	                <th>总回报</th>
+	                <!--<th>每天回报(约)</th>-->
+	                <th>天数</th>
+	                <!--<th>已发放天数</th>-->
+	                <th>是否复投</th>
+	                <th>状态</th>
+	                <th>下注时间</th>
+	                <th>到期时间</th>
+	                <!--<th>操作</th>-->
+	            </tr>
+	            </thead>
+	            <tbody>
+	            {if count($list)}
+	            {foreach $list as $g}
+	            <tr>
+	                <!--<td>{$g.id}</td>-->
+	                <td class="text-left">
+		                <div>ID：{$g.member_id}</div>
+		                <a href="{:url('member/index', ['id'=>$g.member_id])}" target="_blank">{$g.wallet}</a>
+	                </td>
+	                <td>{$g.no}</td>
+	                <td>{$g.price}</td>
+	                <td>{$g.percent}%</td>
+	                <td>{$g.total}</td>
+	                <!--<td>{:number_round($g.total/$g.day, 8)}</td>-->
+		            <td>{$g.day}天</td>
+	                <!--<td>{$g.income_count}</td>-->
+	                <td>
+	                    {if $g.reinvest==0}
+	                    <a class="btn btn-xs btn-success">否</a>
+	                    {else}
+	                    <a class="btn btn-xs btn-warning">是</a>
+	                    {/if}
+	                </td>
+	                <td>
+	                    {if $g.status==0}
+	                    <a class="btn btn-xs btn-default">未生效</a>
+	                    {elseif $g.status==1}
+	                    <a class="btn btn-xs btn-primary">进行中</a>
+	                    {else}
+	                    <a class="btn btn-xs btn-warning">已过期</a>
+	                    {/if}
+	                </td>
+	                <td>{:date('Y-m-d H:i', $g.add_time)}</td>
+	                <td>{:date('Y-m-d H:i', strtotime('+'.$g.day.' day', $g.add_time))}</td>
+	                <!--<td>
+	                    {if $g.status==0}
+	                    <a data-url="{:url('blind/status', ['id'=>$g.id])}" onclick="main.ajaxDelete(this)" data-msg="确定要设为生效吗？" class="btn btn-xs btn-primary">设为生效</a>
+	                    {elseif $g.status==1}
+	                    <a href="{:url('blind/income', ['id'=>$g.id])}" class="btn btn-xs btn-info">立即收益</a>
+	                    <a data-url="{:url('blind/overdue', ['id'=>$g.id])}" onclick="main.ajaxDelete(this)" data-msg="确定要设为过期吗？" class="btn btn-xs btn-danger">设为过期</a>
+	                    {elseif $g.status==2}
+	                    -
+		                {/if}
+	                </td>-->
+	            </tr>
+	            {/foreach}
+	            {else}
+	            <tr class="text-center">
+	                <td colspan="13">暂无数据</td>
+	            </tr>
+	            {/if}
+	            </tbody>
+	        </table>
+	    </div>
+        <div class="page">
+            {$list|raw}
+        </div>
+    </div>
+</section>
+{/block}
+
+
+{block name="footer"}
+<script>
+$(function(){
+	$('#begin_time').datepicker({ readonly:false });
+	$('#end_time').datepicker({ readonly:false });
+});
+</script>
+{/block}

@@ -1,0 +1,107 @@
+{extend name="layout/main" /}
+
+{block name="header"}
+{/block}
+
+{block name="content"}
+<section class="panel">
+    <header class="panel-heading">
+	    <!--<a type="button" href="javascript:void(0)" class="btn btn-info pull-right">导出订单</a>-->
+        <h4>订单列表</h4>
+    </header>
+    <div class="panel-body">
+        <form class="form-block" action="">
+            <div class="form-group">
+                <div class="col-sm-2 no-pd-r">
+                    <input type="text" id="keyword" value="{$Request.get.keyword}" name="keyword" class="form-control" placeholder="关键词">
+                </div>
+                <div class="col-sm-2 no-pd-r">
+                    <select name="status" class="form-control">
+                        <option value="">状态</option>
+	                    {foreach $status as $k=>$g}
+						<option value="{$k}" {if $Request.get.status==$k}selected{/if}>{$g}</option>
+	                    {/foreach}
+                    </select>
+                </div>
+	            <div class="col-sm-1">
+	                <button type="submit" class="btn btn-color">搜索</button>
+	            </div>
+            </div>
+        </form>
+        <div class="panel-table">
+	        <table class="table table-bordered table-striped no-margin">
+	            <thead>
+	            <tr>
+	                <th>ID</th>
+					<th>订单号</th>
+					<th>商品</th>
+					<th>下单人</th>
+					<th>电话</th>
+					<th>服务地址</th>
+					<th>{if $Request.get.integral_order==1}总积分{else}总价{/if}</th>
+					<th>支付方式</th>
+					<th>状态</th>
+					<th>下单时间</th>
+					<th>操作</th>
+	            </tr>
+	            </thead>
+	            <tbody>
+	            {if count($list)}
+	            {foreach $list as $g}
+	            <tr>
+	                <td>{$g.id}</td>
+					<td><a href="{:url('order/edit', ['id'=>$g.id])}">{$g.order_sn}</a></td>
+					<td>
+						{if count($g.goods)}
+						{foreach $g.goods as $gs}
+						<a href="{:url('goods/edit', ['id'=>$gs.goods_id])}" target="_blank">
+							<img src="{$gs.goods_pic}" width="50" onerror="this.src='{__STATIC__}/images/nopic.png'" />
+							<!--<div>名称：{$gs.goods_name}</div>
+							<div>数量：{$gs.quantity}</div>
+							<div>价格：{$gs.price}</div>-->
+						</a>
+						{/foreach}
+						{/if}
+					</td>
+					<td><a href="{:url('member/edit', ['id'=>$g.member_id])}" target="_blank">{$g.member_name}</a></td>
+					<td>{$g.mobile}</td>
+					<td>{$g.address}</td>
+					<td>{if $Request.get.integral_order==1}{intval($g.total_price)}{else}{$g.total_price}{/if}</td>
+					<td>
+						{if $g.pay_method=='wxpay'}APP内微信支付
+						{elseif $g.pay_method=='wxpay_h5'}服务号内支付
+						{elseif $g.pay_method=='wxpay_mini'}小程序内支付
+						{elseif $g.pay_method=='alipay'}支付宝支付
+						{elseif $g.pay_method=='yue'}余额支付
+						{elseif $g.pay_method=='integral'}积分兑换
+						{/if}
+					</td>
+					<td>
+						{$g::getStatus($g.status)}
+					</td>
+	                <td>{:date('Y-m-d H:i', $g.add_time)}</td>
+	                <td>
+	                    <a href="{:url('order/edit', ['id'=>$g.id])}" class="btn btn-xs btn-info">修改</a>
+	                    <a href="{:url('order/print_order', ['id'=>$g.id])}" target="_blank" class="btn btn-xs btn-warning">发货单</a>
+	                </td>
+	            </tr>
+	            {/foreach}
+	            {else}
+	            <tr class="text-center">
+	                <td colspan="12">暂无数据</td>
+	            </tr>
+	            {/if}
+	            </tbody>
+	        </table>
+        </div>
+        <div class="page">
+            {$list|raw}
+        </div>
+    </div>
+</section>
+{/block}
+
+
+{block name="footer"}
+
+{/block}
