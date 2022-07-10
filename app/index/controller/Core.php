@@ -140,13 +140,12 @@ class Core extends Base {
 	
 	//判断是否登录
 	public function check_login(): bool {
-		if ($this->_check_login()) {
-			return true;
-		} else {
+		if (!$this->_check_login()) {
 			if (!IS_AJAX) session('api_gourl', $this->request->url());
 			$this->not_login(lang('please.login'), -2);
+			return false;
 		}
-		return false;
+		return true;
 	}
 	
 	//没有登录处理

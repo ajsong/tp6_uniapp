@@ -51,17 +51,16 @@ class Core extends Base {
 	
 	//判断是否登录
 	public function check_login(): bool {
-		if ($this->_check_login()) {
-			return true;
-		} else {
+		if (!$this->_check_login()) {
 			session('manage_gourl', $this->request->url());
 			if (IS_AJAX) {
 				error('登录失效', -2);
 			} else {
 				$this->redirect('/' . MODULE_NAME . '/login');
 			}
+			return false;
 		}
-		return false;
+		return true;
 	}
 	
 	private function menu() {

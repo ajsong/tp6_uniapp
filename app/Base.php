@@ -33,6 +33,18 @@ class Base extends BaseController {
 		throw new HttpResponseException(redirect($url, $code));
 	}
 	
+	//TP5查询条件转TP6格式, 如 $where['field'] = ['>=', '10'];
+	public function whereArr($where): array {
+		$newWhere = [];
+		foreach ($where as $field => $value) {
+			if (is_array($value)) {
+				if (count($value) > 1) $newWhere[] = [$field, $value[0], $value[1]];
+			}
+			else $newWhere[] = [$field, '=', $value];
+		}
+		return $newWhere;
+	}
+	
 	//构建paginate数据
 	public function paginateArr($pagesize = 15): array {
 		return [

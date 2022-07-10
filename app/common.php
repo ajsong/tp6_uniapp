@@ -1237,11 +1237,13 @@ function t($table, $fields='*'): array {
 }
 
 //替换表前缀(注意！不要随便使用)
-function tableReprefix($old_prefix) {
+function changeTablePrefix($old_prefix) {
+	$prefix = env('database.prefix', '');
 	$list = \think\facade\Db::query('SHOW TABLE STATUS');
 	foreach ($list as $row) {
-		\think\facade\Db::execute('ALTER TABLE `'.$row['Name'].'` RENAME TO `'.str_replace($old_prefix, env('database.prefix', ''), $row['Name']).'`');
+		\think\facade\Db::execute('ALTER TABLE `'.$row['Name'].'` RENAME TO `'.str_replace($old_prefix, $prefix, $row['Name']).'`');
 	}
+	return $prefix;
 }
 
 //后台文件夹随机修改(注意！不要随便使用，请在后台调用)
@@ -1255,6 +1257,17 @@ function changeGmPath() {
 	foreach ($files as $file) {
 		$content = file_get_contents($file);
 		$content = str_replace('namespace app\\'.MODULE_NAME.'\\controller;', 'namespace app\\'.$dirname.'\\controller;', $content);
+		file_put_contents($file, $content);
+	}
+	$path = app_path() . 'view';
+	$files = glob($path . '/*.html');
+	$handle = dir($path);
+	while ($entry = $handle->read()) {
+		if ($entry != '.' && $entry != '..' && is_dir($path . '/' . $entry)) $files = array_merge($files, glob($path . '/' . $entry . '/*.html'));
+	}
+	foreach ($files as $file) {
+		$content = file_get_contents($file);
+		$content = str_replace('\\app\\'.MODULE_NAME.'\\controller\\Core::', '\\app\\'.$dirname.'\\controller\\Core::', $content);
 		file_put_contents($file, $content);
 	}
 	$menu = \think\facade\Db::name('menu')->where('path', 'like', '/'.MODULE_NAME.'/%')->field('id, path')->select();

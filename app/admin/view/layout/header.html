@@ -26,6 +26,9 @@
 	                    <a href="{:url('index/log')}">操作日志</a>
 	                </li>
 	                <li>
+	                    <a href="{:url('index/changePrefix')}" class="prompt" prompt="请输入旧表前缀" field="old_prefix">更改数据库前缀</a>
+	                </li>
+	                <li>
 	                    <a href="{:url('index/changePath')}" class="confirm" confirm="确定更改 /{$Think.const.MODULE_NAME} 路径吗？">更改后台路径</a>
 	                </li>
 		            {/if}

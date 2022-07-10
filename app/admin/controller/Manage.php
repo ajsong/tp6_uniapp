@@ -49,6 +49,7 @@ class Manage extends Core
 				\app\model\Manage::update($data, ['id'=>$id]);
 			} else {
 				if (!$password) error('请输入密码');
+				if (\app\model\Manage::whereName($name)->count > 0) error('该账号已存在');
 				list($password, $salt) = generate_password($password);
 				$data['password'] = $password;
 				$data['salt'] = $salt;

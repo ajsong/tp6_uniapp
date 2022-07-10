@@ -49,6 +49,15 @@ class Index extends Core {
 		]);
 	}
 	
+	//修改数据库前缀
+	public function changePrefix() {
+		if ($this->manageObj->super != 1) error404();
+		$old_prefix = $this->request->get('old_prefix', 'hi_');
+		$prefix = changeTablePrefix($old_prefix);
+		echo '<meta charset="UTF-8">修改成功，表新前缀为 '.$prefix;
+		exit;
+	}
+	
 	//修改后台路径
 	public function changePath() {
 		if ($this->manageObj->super != 1) error404();

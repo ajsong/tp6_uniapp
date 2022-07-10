@@ -98,12 +98,16 @@ class Passport extends Core
 			if (!$password || !strlen($password)) $password = generate_code(8);
 			list($password, $salt) = generate_password($password);
 			$token = generate_token();
+			while (true) {
+				$invite = random_str(10);
+				if (Member::where(['invite_code'=>$invite])->count() == 0) break;
+			}
 			$data = [
 				'password' => $password,
 				'salt' => $salt,
 				'token' => $token,
 				'session_id' => Session::getId(),
-				'invite_code' => random_str(10),
+				'invite_code' => $invite,
 				'status' => 1,
 				'last_ip' => $this->ip,
 				'last_time' => time(),

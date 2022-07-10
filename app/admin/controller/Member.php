@@ -77,6 +77,10 @@ class Member extends Core
 				//if (!$password) error('请填写密码');
 				if (MemberWallet::where('wallet', strtolower($wallet))->count()) error('该会员钱包地址已存在');
 				$password = random_str(8);
+				while (true) {
+					$invite = random_str(10);
+					if (\app\model\Member::where(['invite_code'=>$invite])->count() == 0) break;
+				}
 				list($password, $salt) = generate_password($password);
 				$data['password'] = $password;
 				$data['salt'] = $salt;
@@ -85,7 +89,7 @@ class Member extends Core
 					$data['pay_password'] = $pay_password;
 					$data['pay_salt'] = $pay_salt;
 				}
-				$data['invite_code'] = random_str(10);
+				$data['invite_code'] = $invite;
 				$data['status'] = 1;
 				$data['reg_ip'] = $this->ip;
 				$data['reg_time'] = time();

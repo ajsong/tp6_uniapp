@@ -87,7 +87,8 @@ class MoneyLog extends Core
 	
 	//余额变动，status:0支出,1收入
 	public static function balance($member_id, $old, $number, $remark='余额变动', $type=1, $status=1, $money_type='USDT', $fromid=0, $fromtable='', $fee=0) {
-		$new = bcsub(strval($old), strval($number), 8);
+		$bc = $status == 1 ? 'bcadd' : 'bcsub';
+		$new = $bc(strval($old), strval($number), 8);
 		if ($new < 0) return false; //已超过余额
 		$moneyTypes = self::getMoneyType();
 		$moneyTypes = array_flip($moneyTypes);
