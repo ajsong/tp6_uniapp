@@ -173,7 +173,7 @@ class MetaMask {
 	public function valueWithDecimals($value, $scale = 0, $decimals = 18) {
 		$decimals = $this->getDecimals($decimals);
 		$mul = '1' . str_repeat('0', $decimals);
-		return bcmul(strval($value), $mul, $scale);
+		return bcdiv(strval($value), $mul, $scale);
 	}
 	/*//金额转精度数值, 另一种方法
 	public function pow($value, $scale = 0, $decimals = 18) {

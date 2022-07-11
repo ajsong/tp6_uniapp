@@ -6142,7 +6142,7 @@ CREATE TABLE `hi_member` (
   `pay_password` varchar(128) DEFAULT NULL COMMENT '支付密码',
   `pay_salt` varchar(128) DEFAULT NULL COMMENT '支付盐值',
   `parent_id` int(11) DEFAULT '0' COMMENT '我的邀请人',
-  `parent_tree` varchar(500) DEFAULT '' COMMENT '我的祖辈树',
+  `parent_tree` varchar(1000) DEFAULT '' COMMENT '我的祖辈树',
   `grade_id` int(11) DEFAULT '0' COMMENT '会员等级',
   `grade_score` int(11) DEFAULT '0' COMMENT '等级积分',
   `grade_time` int(11) DEFAULT '0' COMMENT '等级开始时间',

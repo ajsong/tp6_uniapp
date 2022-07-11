@@ -1508,8 +1508,11 @@ function getCoinRate($currency = 'bnb') {
 }
 
 //成功返回函数封装
+$codeKey = 'code';
+$msgKey = 'msg';
+$dataKey = 'data';
 function success($data = null, $msg = 'success') {
-	$dataKey = 'data';
+	global $codeKey, $msgKey, $dataKey;
 	$returnType = defined('RETURN_TYPE') ? strtolower(RETURN_TYPE) : '';
 	$returnAjax = IS_AJAX || $returnType === 'json' || $returnType === 'xml';
 	
@@ -1587,7 +1590,10 @@ function success($data = null, $msg = 'success') {
 	}
 	
 	$toUrl = '';
-	$json = ['code' => 0, 'msg' => (is_string($msg) && !strlen($msg)) ? 'success' : $msg];
+	$json = [
+		"$codeKey" => 0,
+		"$msgKey" => (is_string($msg) && !strlen($msg)) ? 'success' : $msg,
+	];
 	if (is_string($data) && !strlen($data)) $data = null;
 	if (is_array($data) && !count($data)) $data = null;
 	if (!is_null($data)) {
@@ -1636,23 +1642,26 @@ function success($data = null, $msg = 'success') {
 	}
 	
 	if (strlen($toUrl)) {
-		if (!is_string($json['msg']) || $json['msg'] === 'success') redirect($toUrl);
-		script($json['msg'], $toUrl);
+		if (!is_string($json[$msgKey]) || $json[$msgKey] === 'success') redirect($toUrl);
+		script($json[$msgKey], $toUrl);
 	}
 	
-	unset($json['code'], $json['msg']);
+	unset($json[$codeKey], $json[$msgKey]);
 	if (preg_match('/<[^>]+>/', $template_file)) return display($template_file, $json);
 	return view($template_file, $json);
 }
 
 //错误返回函数封装
 function error($msg = 'error', $code = 1) {
+	global $codeKey, $msgKey;
+	$returnType = defined('RETURN_TYPE') ? strtolower(RETURN_TYPE) : '';
+	$returnAjax = IS_AJAX || $returnType === 'json' || $returnType === 'xml';
 	if (is_string($code) && !is_string($msg)) {
 		list($msg, $code) = [$code, $msg];
 	}
-	if (IS_AJAX || (defined('RETURN_JSON') && RETURN_JSON)) {
+	if ($returnAjax) {
 		if (!is_numeric($code)) $code = 1;
-		echo json_encode(['code' => $code, 'msg' => $msg]);
+		echo json_encode(["$codeKey" => $code, "$msgKey" => $msg], JSON_UNESCAPED_UNICODE);
 		exit;
 	}
 	error_tip($msg, $code);
