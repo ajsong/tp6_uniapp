@@ -32,10 +32,10 @@ class MetaMask {
 		$this->web3 = $this->createWeb3($host);
 		$this->provider = $this->web3->provider;
 		
-		$this->contractPath = root_path() . 'contract/';
-		$this->keyPath = $this->contractPath . 'keystore/';
-		$abi = $this->contractPath . $contract . '.abi';
-		$addr = $this->contractPath . $contract . '.addr';
+		$this->contractPath = root_path() . 'contract';
+		$this->keyPath = $this->contractPath . '/keystore';
+		$abi = $this->contractPath . '/' . $contract . '.abi';
+		$addr = $this->contractPath . '/' . $contract . '.addr';
 		if (!file_exists($abi)) exit('The abi file does not exist');
 		if (!file_exists($addr)) exit('The addr file does not exist');
 		$this->abi = file_get_contents($abi);
@@ -43,6 +43,8 @@ class MetaMask {
 		
 		$this->contract = new Contract($this->provider, $this->abi);
 		$this->contract->at($this->addr);
+		
+		$this->createSends();
 	}
 	
 	//创建Web3
@@ -163,9 +165,13 @@ class MetaMask {
 	
 	//获取精度
 	public function getDecimals($decimals = 18) {
-		$cb = new Callback;
-		$this->contract->call('decimals', $cb); //合约方法
-		if ($cb->result && intval($cb->result[0]->value)) $decimals = $cb->result[0]->value;
+		try {
+			$cb = new Callback;
+			$this->contract->call('decimals', $cb); //合约方法
+			if ($cb->result && intval($cb->result[0]->value)) $decimals = $cb->result[0]->value;
+		} catch (\Exception $e) {
+			//
+		}
 		return intval($decimals);
 	}
 	
@@ -182,8 +188,22 @@ class MetaMask {
 	}*/
 	
 	//10进制转16进制
-	public function toHex($value) {
-		return Utils::toHex($value, true);
+	public function decHex($dec) {
+		return Utils::toHex($dec, true);
+	}
+	
+	//16进制转10进制
+	public function hexDec($hex) {
+		return hexdec($hex);
+	}
+	
+	//价格加精度转16进制
+	public function valueWithHex($value) {
+		if (is_numeric($value)) {
+			if (floatval($value) < 0) exit('Amount cannot be negative');
+			$value = $this->decHex($this->valueWithDecimals($value));
+		}
+		return $value;
 	}
 	
 	//获取gasPrice
@@ -217,8 +237,16 @@ class MetaMask {
 		return bcadd(bcmul(strval(ceil(floatval(bcdiv(strval($res), '10000', 8)))), '10000'), '10000');
 	}
 	
-	//转账交易
-	public function transfer($from, $to, $value) {
+	//生成矿工费选项
+	public function createGas($from) {
+		return [
+			'from' => $from,
+			'gas' => Utils::toHex(100000, true)
+		];
+	}
+	
+	//生成交易数据
+	public function transactionData($raw, $from, $to='', $value='') {
 		$cb = new Callback;
 		//返回指定地址发生的交易数量
 		$this->web3->eth->getTransactionCount($from, 'pending', $cb);
@@ -227,36 +255,34 @@ class MetaMask {
 			if ($cb->error) echo $cb->error->getMessage();
 			exit;
 		}
-		$opts = [
-			'from' => $from,
-			'gas' => Utils::toHex(100000, true)
-		];
-		//价格加精度转16进制
-		if (is_numeric($value)) {
-			if (floatval($value) < 0) exit('Amount cannot be negative');
-			$value = $this->toHex($this->valueWithDecimals($value));
-		}
-		//生成交易数据, 需要在\Web3\Contract内复制一份send函数,然后直接返回$transaction
-		$raw = $this->contract->sends('transfer', $to, $value, $opts, $cb);
 		$raw['from'] = $from;
-		$raw['to'] = $to;
+		if ($to) $raw['to'] = $to;
 		$raw['gasPrice'] = '0x' . Utils::toWei($this->gasPrice(), 'gwei')->toHex();
 		$raw['gasLimit'] = Utils::toHex($this->estimateGas($raw), true);
-		$raw['value'] = $value;
+		if ($value) $raw['value'] = $value;
 		$raw['chainId'] = $this->chainId;
 		$raw['nonce'] = Utils::toHex($nonce, true);
-		//file_put_contents($this->contractPath.'log.txt', date('Y-m-d H:i:s') . PHP_EOL . json_encode($raw) . PHP_EOL . PHP_EOL, FILE_APPEND);
+		//write_log($raw, $this->contractPath.'/log.txt');
 		//获取签名
-		$file = $this->keyPath.substr(strtolower($from), 2).'.json';
+		$file = $this->keyPath . '/' . (substr($from, 0, 2) == '0x' ? substr(strtolower($from), 2) : $from) . '.json';
 		if (!file_exists($file)) exit('The certificate file does not exist');
-		$credential = Credential::fromWallet(env('wallet.password'), $file);
-		$signed = $credential->signTransaction($raw);
+		$credential = Credential::fromWallet(env('wallet.password', 'passwordMetaMask'), $file);
+		return $credential->signTransaction($raw);
+	}
+	
+	//转账交易
+	public function transfer($from, $to, $value) {
+		$cb = new Callback;
+		$value = $this->valueWithHex($value);
+		//生成交易数据, 需要在\Web3\Contract内复制一份send函数,然后直接返回$transaction
+		$raw = $this->contract->sends('transfer', $to, $value, $this->createGas($from), $cb);
 		//发起裸交易
-		$this->web3->eth->sendRawTransaction($signed, $cb);
-		if ($cb->result) {
-			return $this->waitForTransaction($cb->result);
+		$this->web3->eth->sendRawTransaction($this->transactionData($raw, $from, $to, $value), $cb);
+		if (!$cb->result) {
+			if ($cb->error) echo $cb->error->getMessage();
+			exit;
 		}
-		return false;
+		return $this->waitForTransaction($cb->result);
 	}
 	
 	//循环获取到hash数据为止
@@ -272,6 +298,22 @@ class MetaMask {
 		}
 		return $cb->result;
 	}
+	
+	//创建sends方法
+	private function createSends() {
+		if (method_exists($this->contract, 'sends')) return;
+		$contractFile = ROOT_PATH . '/vendor/sc0vu/web3.php/src/Contract.php';
+		$content = file_get_contents($contractFile);
+		preg_match('/(public function send\(\)[\s\S]+?})([\n\s\t]+\/\*\*)/', $content, $matcher);
+		$code = $matcher[1] . PHP_EOL . PHP_EOL . "    " . str_replace('$this->eth->sendTransaction($transaction, function ($err, $transaction) use ($callback){
+                if ($err !== null) {
+                    return call_user_func($callback, $err, null);
+                }
+                return call_user_func($callback, null, $transaction);
+            });', 'return $transaction;', str_replace('public function send()', 'public function sends()', $matcher[1]));
+		$content = preg_replace('/(public function send\(\)[\s\S]+?})[\n\s\t]+\/\*\*/', $code . $matcher[2], $content);
+		file_put_contents($contractFile, $content);
+	}
 }
 
 /*
@@ -279,8 +321,8 @@ class MetaMask {
 //$host = 'https://bsc-mainnet.web3api.com/v1/EPEYY8PIX22QS8MPUUURZ4573AH8JUIPAZ'; //主网
 $host = 'https://bsc-dataseed1.binance.org';
 $test_host = 'https://data-seed-prebsc-2-s1.binance.org:8545'; //测试网
-//$model = new \app\model\Ethereum($host, 56);
-$model = new \app\model\Ethereum($test_host, 97);
+//$model = new \app\model\MetaMask($host, 56);
+$model = new \app\model\MetaMask($test_host, 97);
 //dump($model);
 
 $wallet = '0x3a861F5bC4957067Ea3CE04658104c8eA8fD4800';
@@ -293,15 +335,13 @@ $my_wallet = '0x2A2BdcF89f6C8F359e5BFFcec54FBcB7Bc8aFA66';
 $num = $model->getBalance($wallet, 8);
 dump($num);
 
-//获取余额
-$num = $model->getBalance($my_wallet, 8);
-dump($num);
-
-//转账
-//$res = $model->transfer($wallet, $my_wallet, 0.1);
-//dump($res);
-
-//获取余额
-//$num = $model->getBalance($my_wallet, 8);
-//halt($num);
+$model->contract->call('test', function($err, $result) {
+	if ($err !== null) {
+		echo $err->getMessage();
+		exit;
+	}
+	if (isset($result)) {
+		//dump($result);
+	}
+});
 */

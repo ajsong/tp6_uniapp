@@ -70,7 +70,7 @@ class Core extends Base {
 			if (in_array('all', $menuIds)) {
 				$menu = $this->getAllMenus();
 			} else {
-				$menu = $this->getAllMenus($menuIds);
+				$menu = $this->getAllMenus(0, $menuIds);
 			}
 			return $menu;
 		});
@@ -90,11 +90,23 @@ class Core extends Base {
 		return array_flip($menuIds); //要array_flip两次才正确
 	}
 	
-	public function getAllMenus($menuIds = []) {
-		$level = [1, 2];
-		$menu = \app\model\Menu::whereIn('level', $level);
+	public function getAllMenus($parent_id = 0, $menuIds = []) {
+		$menu = \app\model\Menu::where([
+			['parent_id', '=', $parent_id],
+			['level', '>', 0],
+		]);
 		if ($menuIds) $menu->whereIn('id', $menuIds);
-		return $menu->order(['sort', 'id'])->select();
+		return $menu->order(['sort', 'id'])->select()->each(function($item) use ($menuIds) {
+			$children = \app\model\Menu::where([
+				['parent_id', '=', $item->id],
+				['level', '>', 0],
+			]);
+			if ($menuIds) $children->whereIn('id', $menuIds);
+			$count = $children->count();
+			if ($count > 0) {
+				$item->children = $this->getAllMenus($item->id, $menuIds);
+			}
+		});
 	}
 	
 	//检查权限
@@ -128,10 +140,10 @@ class Core extends Base {
 	
 	//输出模板
 	public function render($data = [], $template_file = '') {
-		if (IS_AJAX) {
+		if (IS_AJAX || $this->request->get('output') == 'view') {
 			$param = [];
 			$full = $this->request->get('full');
-			if ($full) {
+			if ($full || $this->request->get('output') == 'view') {
 				$param['manage'] = $this->manageObj;
 				$param['leftMenu'] = $this->menu();
 			}

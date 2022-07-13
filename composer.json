@@ -45,6 +45,9 @@
         "psr-4": {
             "app\\": "app",
             "EthTool\\": "extend/EthTool/src/",
+			"Elliptic\\": "extend/simplito/elliptic-php/lib/",
+			"BN\\": "extend/simplito/bn-php/lib/",
+			"BI\\": "extend/simplito/bigint-wrapper-php/lib/",
             "PHPQrcode\\": "extend/PHPQrcode/"
         },
         "psr-0": {

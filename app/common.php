@@ -1030,9 +1030,9 @@ function cut_str($string, $length=80, $suffix=''): string {
 	return $match[1] . $suffix . (isset($match[2]) ? '' : '<i>...</i>');
 }
 
-//下划线转驼峰
-function camelize($value, $delimiter='_'): string {
-	return trim(str_replace(' ', '', ucwords($delimiter.str_replace(['-', $delimiter], ' ', $value))), $delimiter);
+//下划线转驼峰, small:小驼峰
+function camelize($value, $small=false, $delimiter='_'): string {
+	return trim(str_replace(' ', '', ucwords(str_replace(['-', $delimiter], ' ', ($small ? '#' : '').$value))), '#');
 }
 
 //驼峰转下划线
@@ -1285,8 +1285,8 @@ function changeGmPath() {
 
 //CURL方式请求
 function requestUrl($method, $url, $params=[], $returnJson=false, $postJson=false, $headers=[], $getHeader=false) {
-	//set_time_limit(0);
-	//ini_set('memory_limit', '10240M');
+	set_time_limit(0);
+	ini_set('memory_limit', '10240M');
 	$method = strtoupper($method);
 	$ch = curl_init();
 	curl_setopt($ch, CURLOPT_URL, $url);
@@ -1508,11 +1508,12 @@ function getCoinRate($currency = 'bnb') {
 }
 
 //成功返回函数封装
-$codeKey = 'code';
-$msgKey = 'msg';
-$dataKey = 'data';
+const JSON_CODE_SUCCESS = 0;
+const JSON_CODE_KEY = 'code';
+const JSON_MSG_KEY = 'msg';
+const JSON_DATA_KEY = 'data';
+const JSON_DATA_CAMELIZE = false; //字段转小驼峰
 function success($data = null, $msg = 'success') {
-	global $codeKey, $msgKey, $dataKey;
 	$returnType = defined('RETURN_TYPE') ? strtolower(RETURN_TYPE) : '';
 	$returnAjax = IS_AJAX || $returnType === 'json' || $returnType === 'xml';
 	
@@ -1560,7 +1561,7 @@ function success($data = null, $msg = 'success') {
 		}
 	}
 	
-	$washResponse = function($data) use (&$washResponse) {
+	$washResponse = function($data) use (&$washResponse, $returnAjax) {
 		if ($data instanceof \think\response\Json) {
 			$tmp = $data->getData();
 			if (!isset($tmp['data'])) return $data;
@@ -1569,12 +1570,27 @@ function success($data = null, $msg = 'success') {
 		else if ($data instanceof \think\response\View) $data = $data->getVars();
 		if (!is_array($data)) return $data;
 		foreach ($data as $key => $value) {
+			if (JSON_DATA_CAMELIZE && $returnAjax && !is_numeric($key)) {
+				unset($data[$key]);
+				$key = camelize($key, true);
+			}
 			if (is_array($value)) $data[$key] = $washResponse($value);
 			else if ($value instanceof \think\response\Json) {
 				$tmp = $value->getData();
 				if (isset($tmp['data'])) $data[$key] = $washResponse($tmp['data']);
 			}
 			else if ($value instanceof \think\response\View) $data[$key] = $washResponse($value->getVars());
+			else if (($value instanceof \think\model\Collection) || ($value instanceof \think\Model) || ($value instanceof \think\paginator\driver\Bootstrap)) {
+				if ($returnAjax) {
+					$obj = $value->toArray();
+					if ($value instanceof \think\paginator\driver\Bootstrap) $obj = $obj['data'];
+					$data[$key] = $washResponse($obj);
+				} else {
+					$data[$key] = $value;
+				}
+			} else {
+				$data[$key] = $value;
+			}
 		}
 		return $data;
 	};
@@ -1591,8 +1607,8 @@ function success($data = null, $msg = 'success') {
 	
 	$toUrl = '';
 	$json = [
-		"$codeKey" => 0,
-		"$msgKey" => (is_string($msg) && !strlen($msg)) ? 'success' : $msg,
+		JSON_CODE_KEY => JSON_CODE_SUCCESS,
+		JSON_MSG_KEY => (is_string($msg) && !strlen($msg)) ? 'success' : $msg,
 	];
 	if (is_string($data) && !strlen($data)) $data = null;
 	if (is_array($data) && !count($data)) $data = null;
@@ -1621,10 +1637,10 @@ function success($data = null, $msg = 'success') {
 					$json['stay'] = 1;
 				}
 			} else {
-				$json[$dataKey] = $data;
+				$json[JSON_DATA_KEY] = $data;
 			}
 		} else {
-			$json[$dataKey] = $washResponse($data);
+			$json[JSON_DATA_KEY] = $washResponse($data);
 		}
 	}
 	
@@ -1637,23 +1653,22 @@ function success($data = null, $msg = 'success') {
 		return xml($json);
 	}
 	
-	if ($returnAjax) {
+	if ($returnAjax || request()->get('output') === 'view') {
 		return json($json);
 	}
 	
 	if (strlen($toUrl)) {
-		if (!is_string($json[$msgKey]) || $json[$msgKey] === 'success') redirect($toUrl);
-		script($json[$msgKey], $toUrl);
+		if (!is_string($json[JSON_MSG_KEY]) || $json[JSON_MSG_KEY] === 'success') redirect($toUrl);
+		script($json[JSON_MSG_KEY], $toUrl);
 	}
 	
-	unset($json[$codeKey], $json[$msgKey]);
+	unset($json[JSON_CODE_KEY], $json[JSON_MSG_KEY]);
 	if (preg_match('/<[^>]+>/', $template_file)) return display($template_file, $json);
 	return view($template_file, $json);
 }
 
 //错误返回函数封装
 function error($msg = 'error', $code = 1) {
-	global $codeKey, $msgKey;
 	$returnType = defined('RETURN_TYPE') ? strtolower(RETURN_TYPE) : '';
 	$returnAjax = IS_AJAX || $returnType === 'json' || $returnType === 'xml';
 	if (is_string($code) && !is_string($msg)) {
@@ -1661,7 +1676,7 @@ function error($msg = 'error', $code = 1) {
 	}
 	if ($returnAjax) {
 		if (!is_numeric($code)) $code = 1;
-		echo json_encode(["$codeKey" => $code, "$msgKey" => $msg], JSON_UNESCAPED_UNICODE);
+		echo json_encode([JSON_CODE_KEY => $code, JSON_MSG_KEY => $msg], JSON_UNESCAPED_UNICODE);
 		exit;
 	}
 	error_tip($msg, $code);

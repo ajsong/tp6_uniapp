@@ -39,7 +39,6 @@
 	                        </tr>
 	                    </thead>
                         {foreach $menu as $g}
-                        {if $g.level == 1}
                         <tbody>
                             <tr>
                                 <td rowspan="{$g->getChildTotal()}">
@@ -47,8 +46,7 @@
                                 </td>
                             </tr>
                             {assign name="loop" value="0"}
-                            {foreach $menu as $child}
-                            {if $child.parent_id == $g.id}
+                            {foreach $g.children as $child}
                             <tr>
                                 <td>
 	                                <input type="checkbox" data-type="checkbox" data-text="{$child.name}" data-noLeft="true" name="menu[]" value="{$child.id}" onclick="selectActions(this)" {if in_array($child.id, $menus) || $row.menu=='all'}checked{/if}>
@@ -68,10 +66,8 @@
 	                            {/if}
                             </tr>
                             <!--{$loop++}-->
-                            {/if}
                             {/foreach}
                         </tbody>
-                        {/if}
                         {/foreach}
                     </table>
                 </div>

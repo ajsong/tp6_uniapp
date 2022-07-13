@@ -136,7 +136,7 @@ class Manage extends Core
 			$permission = $this->_get_file_action();
 		}
 		$menus = explode(',', $row['menu']);
-		$menu = $this->getAllMenus([]);
+		$menu = $this->getAllMenus();
 		return $this->render([
 			'row' => $row,
 			'menus' => $menus,
