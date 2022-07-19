@@ -11,7 +11,7 @@ class Config extends Core
     public function index() {
 		$where = [];
 		if ($this->manageSuper != 1) $where[] = ['status', '=', 1];
-		$list = \app\model\Config::where($where)->order('id')
+		$list = \app\model\Config::where($where)->order(['status', 'id'])
 			->paginate($this->paginateArr())->each(function($item) {
 				$item->placeholder = '';
 				$item->attr = '';

@@ -26,7 +26,7 @@ class MetaMask {
 	public $contractPath, $keyPath;
 	public $abi, $addr;
 	
-	public function __construct($host, $chainId, $contract = 'contract') {
+	public function __construct($host, $chainId, $contract = 'contract', $addr = '') {
 		$this->host = $host;
 		$this->chainId = $chainId;
 		$this->web3 = $this->createWeb3($host);
@@ -35,11 +35,15 @@ class MetaMask {
 		$this->contractPath = root_path() . 'contract';
 		$this->keyPath = $this->contractPath . '/keystore';
 		$abi = $this->contractPath . '/' . $contract . '.abi';
-		$addr = $this->contractPath . '/' . $contract . '.addr';
 		if (!file_exists($abi)) exit('The abi file does not exist');
-		if (!file_exists($addr)) exit('The addr file does not exist');
 		$this->abi = file_get_contents($abi);
-		$this->addr = file_get_contents($addr);
+		if (!strlen($addr)) {
+			$addr = $this->contractPath . '/' . $contract . '.addr';
+			if (!file_exists($addr)) exit('The addr file does not exist');
+			$this->addr = file_get_contents($addr);
+		} else {
+			$this->addr = $addr;
+		}
 		
 		$this->contract = new Contract($this->provider, $this->abi);
 		$this->contract->at($this->addr);
@@ -48,7 +52,7 @@ class MetaMask {
 	}
 	
 	//创建Web3
-	public function createWeb3($host, $timeout = 30): Web3 {
+	public function createWeb3($host, $timeout = 60): Web3 {
 		//set this time accordingly by default it is 1 sec
 		return new Web3(new HttpProvider(new HttpRequestManager($host, $timeout)));
 	}
@@ -82,223 +86,6 @@ class MetaMask {
 		return true;
 	}
 	
-	//获取余额
-	public function getBalance($account, $scale = 0, $decimals = 18) {
-		$cb = new Callback;
-		$this->web3->eth->getBalance($account, 'latest', $cb); //RPC方法
-		$result = $cb->result;
-		if ($result) {
-			return $this->valueWithDecimals($result->value, $scale, $decimals);
-		} else {
-			return 0;
-		}
-	}
-	
-	//获取hash数据
-	public function getHashData($hash, $host = '') {
-		$cb = new Callback;
-		$web3 = strlen($host) ? $this->createWeb3($host) : $this->web3;
-		$web3->eth->getTransactionByHash($hash, $cb);
-		if (!$cb->result) {
-			if ($cb->error) echo $cb->error->getMessage();
-			exit;
-		}
-		/*if ($cb->result->status == '0x1') { //getTransactionReceipt才有status
-			return json_decode(json_encode($cb->result), true);
-		}*/
-		return json_decode(json_encode($cb->result), true);
-	}
-	
-	//获取hash数据, 严格判断
-	public function getHashOrder($hash, $price, $from, $to, $host = '') {
-		$cb = new Callback;
-		$web3 = strlen($host) ? $this->createWeb3($host) : $this->web3;
-		$web3->eth->getTransactionReceipt($hash, $cb);
-		if (!$cb->result) {
-			if ($cb->error) echo $cb->error->getMessage();
-			exit;
-		}
-		$res = Utils::jsonToArray($cb->result);
-		$price = floatval($this->valueWithDecimals($price, 8));
-		$num = floatval($this->valueWithDecimals(hexdec($res['logs'][0]['data']), 8));
-		if (strtolower($from) == strtolower($res['from']) && strtolower($to) == strtolower(substr_replace($res['logs'][0]['topics'][2], '', 2, 24)) && $num == $price) {
-			if (hexdec($res['status']) == 1) {
-				return true;
-			}
-		}
-		return false;
-		/*{
-			"error": null
-			"result": {
-				"blockHash": "0xbb744de38834f41cc50491289e34ae6c887fd47c5a1d5baebe3f4482cab9c138"
-				"blockNumber": "0x11683be"
-				"contractAddress": null
-				"cumulativeGasUsed": "0x199858e"
-				"from": "0x3a861f5bc4957067ea3ce04658104c8ea8fd4800"
-				"gasUsed": "0x8d07"
-				"logs": [
-					0 => {
-						"address": "0x55d398326f99059ff775485246999027b3197955"
-						"topics": [
-							0 => "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
-							1 => "0x0000000000000000000000003a861f5bc4957067ea3ce04658104c8ea8fd4800"
-							2 => "0x0000000000000000000000002a2bdcf89f6c8f359e5bffcec54fbcb7bc8afa66"
-						]
-						"data": "0x000000000000000000000000000000000000000000000000016345785d8a0000"
-						"blockNumber": "0x11683be"
-						"transactionHash": "0x966ba9fa608bd020e67b78787087a78af03e02cf73227aa14454860b6e2442a8"
-						"transactionIndex": "0x101"
-						"blockHash": "0xbb744de38834f41cc50491289e34ae6c887fd47c5a1d5baebe3f4482cab9c138"
-						"logIndex": "0x2b4"
-						"removed": false
-					}
-				]
-				"logsBloom": "0x0000000000000000000000000000000000000000000000000000000000000000004000000001000000000000000"
-				"status": "0x1"
-				"to": "0x55d398326f99059ff775485246999027b3197955"
-				"transactionHash": "0x966ba9fa608bd020e67b78787087a78af03e02cf73227aa14454860b6e2442a8"
-				"transactionIndex": "0x101"
-				"type": "0x0"
-			}
-		}*/
-	}
-	
-	//获取精度
-	public function getDecimals($decimals = 18) {
-		try {
-			$cb = new Callback;
-			$this->contract->call('decimals', $cb); //合约方法
-			if ($cb->result && intval($cb->result[0]->value)) $decimals = $cb->result[0]->value;
-		} catch (\Exception $e) {
-			//
-		}
-		return intval($decimals);
-	}
-	
-	//金额转精度数值
-	public function valueWithDecimals($value, $scale = 0, $decimals = 18) {
-		$decimals = $this->getDecimals($decimals);
-		$mul = '1' . str_repeat('0', $decimals);
-		return bcdiv(strval($value), $mul, $scale);
-	}
-	/*//金额转精度数值, 另一种方法
-	public function pow($value, $scale = 0, $decimals = 18) {
-		$decimals = $this->getDecimals($decimals);
-		return bcdiv(strval($value), strval(pow(10, intval($decimals))), $scale);
-	}*/
-	
-	//10进制转16进制
-	public function decHex($dec) {
-		return Utils::toHex($dec, true);
-	}
-	
-	//16进制转10进制
-	public function hexDec($hex) {
-		return hexdec($hex);
-	}
-	
-	//价格加精度转16进制
-	public function valueWithHex($value) {
-		if (is_numeric($value)) {
-			if (floatval($value) < 0) exit('Amount cannot be negative');
-			$value = $this->decHex($this->valueWithDecimals($value));
-		}
-		return $value;
-	}
-	
-	//获取gasPrice
-	public function gasPrice() {
-		$cb = new Callback;
-		$this->web3->eth->gasPrice($cb);
-		if (!$cb->result) {
-			if ($cb->error) echo $cb->error->getMessage();
-			exit;
-		}
-		$res = intval($cb->result->value);
-		$gwei = ceil(floatval(bcdiv(strval($res), '1000000000')));
-		return strval($gwei);
-	}
-	
-	//执行并估算一个交易需要的gas用量
-	public function estimateGas($row) {
-		$cb = new Callback;
-		$arr = array(
-			'from' => $row['from'],
-			'to' => $row['to'],
-			'data' => $row['data']
-		);
-		$this->web3->eth->estimateGas($arr, $cb);
-		if (!$cb->result) {
-			$res = 1800000;
-		} else {
-			$res = intval($cb->result->value);
-			if (!$res) $res = 1800000;
-		}
-		return bcadd(bcmul(strval(ceil(floatval(bcdiv(strval($res), '10000', 8)))), '10000'), '10000');
-	}
-	
-	//生成矿工费选项
-	public function createGas($from) {
-		return [
-			'from' => $from,
-			'gas' => Utils::toHex(100000, true)
-		];
-	}
-	
-	//生成交易数据
-	public function transactionData($raw, $from, $to='', $value='') {
-		$cb = new Callback;
-		//返回指定地址发生的交易数量
-		$this->web3->eth->getTransactionCount($from, 'pending', $cb);
-		$nonce = $cb->result;
-		if (!$nonce) {
-			if ($cb->error) echo $cb->error->getMessage();
-			exit;
-		}
-		$raw['from'] = $from;
-		if ($to) $raw['to'] = $to;
-		$raw['gasPrice'] = '0x' . Utils::toWei($this->gasPrice(), 'gwei')->toHex();
-		$raw['gasLimit'] = Utils::toHex($this->estimateGas($raw), true);
-		if ($value) $raw['value'] = $value;
-		$raw['chainId'] = $this->chainId;
-		$raw['nonce'] = Utils::toHex($nonce, true);
-		//write_log($raw, $this->contractPath.'/log.txt');
-		//获取签名
-		$file = $this->keyPath . '/' . (substr($from, 0, 2) == '0x' ? substr(strtolower($from), 2) : $from) . '.json';
-		if (!file_exists($file)) exit('The certificate file does not exist');
-		$credential = Credential::fromWallet(env('wallet.password', 'passwordMetaMask'), $file);
-		return $credential->signTransaction($raw);
-	}
-	
-	//转账交易
-	public function transfer($from, $to, $value) {
-		$cb = new Callback;
-		$value = $this->valueWithHex($value);
-		//生成交易数据, 需要在\Web3\Contract内复制一份send函数,然后直接返回$transaction
-		$raw = $this->contract->sends('transfer', $to, $value, $this->createGas($from), $cb);
-		//发起裸交易
-		$this->web3->eth->sendRawTransaction($this->transactionData($raw, $from, $to, $value), $cb);
-		if (!$cb->result) {
-			if ($cb->error) echo $cb->error->getMessage();
-			exit;
-		}
-		return $this->waitForTransaction($cb->result);
-	}
-	
-	//循环获取到hash数据为止
-	public function waitForTransaction($hash, $host = '', $timeout = 60, $interval = 1) {
-		$cb = new Callback;
-		$web3 = strlen($host) ? $this->createWeb3($host) : $this->web3;
-		$time = time();
-		while (true) {
-			$web3->eth->getTransactionReceipt($hash, $cb);
-			if ($cb->result) break;
-			if (time() - $time > $timeout) break;
-			sleep($interval);
-		}
-		return $cb->result;
-	}
-	
 	//创建sends方法
 	private function createSends() {
 		if (method_exists($this->contract, 'sends')) return;
@@ -313,6 +100,217 @@ class MetaMask {
             });', 'return $transaction;', str_replace('public function send()', 'public function sends()', $matcher[1]));
 		$content = preg_replace('/(public function send\(\)[\s\S]+?})[\n\s\t]+\/\*\*/', $code . $matcher[2], $content);
 		file_put_contents($contractFile, $content);
+	}
+	
+	//获取余额
+	public function getBalance($account, $scale = 8, $decimals = 0) {
+		$cb = new Callback;
+		try {
+			$this->contract->call('balanceOf', $account, $cb); //合约方法
+		} catch (\InvalidArgumentException $e) {
+			$this->web3->eth->getBalance($account, 'latest', $cb); //RPC方法
+		}
+		if ($cb->result) {
+			$result = json_decode(json_encode($cb->result), true);
+			return floatval($this->decodeValue($result['value'] ?? $result[0]['value'], $scale, $decimals));
+		}
+		return 0;
+	}
+	
+	//获取hash数据
+	public function getHashData($hash, $host = '') {
+		$cb = new Callback;
+		$web3 = strlen($host) ? $this->createWeb3($host) : $this->web3;
+		$web3->eth->getTransactionByHash($hash, $cb);
+		if (!$cb->result) {
+			if ($cb->error) {
+				echo $cb->error->getMessage();
+				exit;
+			}
+			exit("cb's error and result are null");
+		}
+		return json_decode(json_encode($cb->result), true);
+	}
+	
+	//判断hash数据是否正确
+	public function checkHashData($hash, $from, $to, $price = 0, $host = '') {
+		$res = $this->getHashData($hash, $host);
+		$priceCorrect = true;
+		if (floatval($price) > 0) {
+			$value = floatval($this->decodeValue(hexdec($res['value'])));
+			$priceCorrect = $value != floatval($price);
+		}
+		return (strtolower($from) == strtolower($res['from']) && strtolower($to) == strtolower($res['to']) && $priceCorrect);
+		/*{
+		    "error": null,
+		    "result": {
+		        "blockHash": "0x0493a8469f5f8503c3cbcd27960f36788b7008eb047d71d6130406cfc32ade6d",
+		        "blockNumber": "0x102de8f",
+		        "from": "0x2a2bdcf89f6c8f359e5bffcec54fbcb7bc8afa66",
+		        "gas": "0x613e",
+		        "gasPrice": "0x3b9aca00",
+		        "maxFeePerGas": "0x3b9aca00",
+		        "maxPriorityFeePerGas": "0x3b9aca00",
+		        "hash": "0xf79b4631a4e8b5e1dcd3458af9b16caea08ee450e4500f79df32c1684e2b3f6c",
+		        "input": "0x",
+		        "nonce": "0x1",
+		        "to": "0xb2f103a37679ec8071ed06fcede0493c8dcc3cf7",
+		        "transactionIndex": "0x0",
+		        "value": "0x71afd498d0000",
+		        "type": "0x2",
+		        "accessList": [],
+		        "chainId": "0x100",
+		        "v": "0x0",
+		        "r": "0x60f705fe78661027838f4116a9bdad0f9686a3829ffa92c43a31dd853eda147c",
+		        "s": "0x7b5c29d2679b7f4b832c7a5a23ca7dd547ccbbb5883da5f637d2186a12e7c0c0"
+		    }
+		}*/
+	}
+	
+	//获取精度
+	public function getDecimals() {
+		$decimals = 18;
+		try {
+			$cb = new Callback;
+			$this->contract->call('decimals', $cb); //合约方法
+			if ($cb->result && intval($cb->result[0]->value)) $decimals = $cb->result[0]->value;
+		} catch (\Exception $e) {
+			//
+		}
+		return intval($decimals);
+	}
+	
+	//金额加精度转16进制
+	public function encodeValue($value) {
+		if (is_numeric($value)) {
+			if (floatval($value) < 0) exit('Amount cannot be negative');
+			$value = $this->decHex($this->decodeValue($value));
+		}
+		return $value;
+	}
+	
+	//金额转10进制去精度
+	public function decodeValue($value, $scale = 8, $decimals = 0) {
+		if ($decimals <= 0) $decimals = $this->getDecimals();
+		$mul = '1' . str_repeat('0', $decimals);
+		return bcdiv(strval($value), $mul, $scale);
+	}
+	/*//金额转精度数值, 另一种方法
+	public function pow($value, $scale = 8, $decimals = 0) {
+		if ($decimals <= 0) $decimals = $this->getDecimals();
+		return bcdiv(strval($value), strval(pow(10, intval($decimals))), $scale);
+	}*/
+	
+	//10进制转16进制
+	public function decHex($dec) {
+		return Utils::toHex($dec, true);
+	}
+	
+	//16进制转10进制
+	public function hexDec($hex) {
+		return hexdec($hex);
+	}
+	
+	//获取gasPrice
+	public function gasPrice() {
+		$cb = new Callback;
+		$this->web3->eth->gasPrice($cb);
+		if (!$cb->result) {
+			if ($cb->error) {
+				echo $cb->error->getMessage();
+				exit;
+			}
+			exit("cb's error and result are null");
+		}
+		$res = intval($cb->result->value);
+		$gwei = ceil(floatval(bcdiv(strval($res), '1000000000')));
+		return strval($gwei);
+	}
+	
+	//执行并估算一个交易需要的gas用量
+	public function estimateGas($row, $default_gas=1800000) {
+		$cb = new Callback;
+		$arr = array(
+			'from' => $row['from'],
+			'to' => $row['to'] ?? '',
+			'data' => $row['data'] ?? ''
+		);
+		$this->web3->eth->estimateGas($arr, $cb);
+		if (!$cb->result) {
+			$res = $default_gas;
+		} else {
+			$res = intval($cb->result->value);
+			if (!$res) $res = $default_gas;
+		}
+		return bcadd(bcmul(strval(ceil(floatval(bcdiv(strval($res), '10000', 8)))), '10000'), '10000');
+	}
+	
+	//生成矿工费选项
+	public function createGas($from, $gas=1800000) {
+		return [
+			'from' => $from,
+			'gas' => Utils::toHex($gas, true)
+		];
+	}
+	
+	//生成交易数据
+	public function transactionData($raw, $from, $to='', $value='', $default_gas=1800000) {
+		$cb = new Callback;
+		//返回指定地址发生的交易数量
+		$this->web3->eth->getTransactionCount($from, 'pending', $cb);
+		$nonce = $cb->result;
+		if (!$nonce) {
+			if ($cb->error) {
+				echo $cb->error->getMessage();
+				exit;
+			}
+			exit("cb's error and result are null");
+		}
+		$raw['from'] = $from;
+		if ($to) $raw['to'] = $to;
+		$raw['gasPrice'] = '0x' . Utils::toWei($this->gasPrice(), 'gwei')->toHex();
+		$raw['gasLimit'] = Utils::toHex($this->estimateGas($raw, $default_gas), true);
+		if ($value) $raw['value'] = $value;
+		$raw['chainId'] = $this->chainId;
+		$raw['nonce'] = Utils::toHex($nonce, true);
+		//write_log($raw, $this->contractPath.'/log.txt');
+		//获取签名
+		$file = $this->keyPath . '/' . (substr($from, 0, 2) == '0x' ? substr(strtolower($from), 2) : $from) . '.json';
+		if (!file_exists($file)) exit('The certificate file does not exist');
+		$credential = Credential::fromWallet(env('wallet.password', 'passwordMetaMask'), $file);
+		return $credential->signTransaction($raw);
+	}
+	
+	//转账交易
+	public function transfer($from, $to, $value) {
+		$cb = new Callback;
+		$value = $this->encodeValue($value);
+		//生成交易数据, 需要在\Web3\Contract内复制一份send函数,然后直接返回$transaction
+		$raw = $this->contract->sends('transfer', $to, $value, $this->createGas($from), $cb);
+		//发起裸交易
+		$this->web3->eth->sendRawTransaction($this->transactionData($raw, $from, $to, $value), $cb);
+		if (!$cb->result) {
+			if ($cb->error) {
+				echo $cb->error->getMessage();
+				exit;
+			}
+			exit("cb's error and result are null");
+		}
+		return $this->waitForTransaction($cb->result);
+	}
+	
+	//循环获取到hash数据为止
+	public function waitForTransaction($hash, $host = '', $timeout = 60, $interval = 1) {
+		$cb = new Callback;
+		$web3 = strlen($host) ? $this->createWeb3($host) : $this->web3;
+		$time = time();
+		while (true) {
+			$web3->eth->getTransactionByHash($hash, $cb);
+			if ($cb->result) break;
+			if (time() - $time > $timeout) break;
+			sleep($interval);
+		}
+		return json_decode(json_encode($cb->result), true);
 	}
 }
 
@@ -330,7 +328,7 @@ $my_wallet = '0x2A2BdcF89f6C8F359e5BFFcec54FBcB7Bc8aFA66';
 
 //获取区块详情
 //$res = $model->getHashData('0xa18bb269cebd3baae1405ef7a82c61c00bf17a396e91342c827105ebe9d0339b');
-//$num = $model->valueWithDecimals(hexdec($res['value']), 8);
+//$num = $model->decodeValue(hexdec($res['value']), 8);
 
 $num = $model->getBalance($wallet, 8);
 dump($num);

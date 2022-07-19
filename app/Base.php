@@ -45,6 +45,11 @@ class Base extends BaseController {
 		return $newWhere;
 	}
 	
+	//组合两端加标识包裹的LIKE条件
+	public function whereWrap($field, $value, $delimiter=','): string {
+		return "CONCAT('$delimiter',$field,'$delimiter') LIKE '%$delimiter$value$delimiter%'";
+	}
+	
 	//构建paginate数据
 	public function paginateArr($pagesize = 15): array {
 		return [

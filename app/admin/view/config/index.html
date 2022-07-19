@@ -26,7 +26,7 @@
 	            <tbody>
 	            {foreach $list as $g}
 	            <tr>
-	                <td {if $g.type=="textarea"}style="vertical-align:top;"{/if}>{$g.memo}</td>
+	                <td {if $g.type=="textarea"}style="vertical-align:top;"{/if}>{if $g.status==0}<strong class="red">* </strong>{/if}{$g.memo}</td>
 	                <td {if $g.type=="textarea"}style="vertical-align:top;"{/if}>{$g.key}</td>
 		            <td>
 			            {if $g.type=='file'}

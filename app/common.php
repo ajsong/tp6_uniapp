@@ -1473,7 +1473,6 @@ function requestUrls($method, $url, $params=[], $returnJson=false, $postJson=fal
 //异步调用PHP, 例如处理完客户端需要的数据就返回, 再调用该函数异步在服务器执行耗时的操作
 function requestAsync($method, $url, $param=[], $header=[]) {
 	//当执行过程中,客户端连接断开或连接超时,都会有可能造成执行不完整,因此目标网址程序需要加上
-	//ini_set('ignore_user_abort', true);
 	//ignore_user_abort(true); //忽略客户端断开
 	//set_time_limit(0); //设置执行不超时
 	$method = strtoupper($method);
@@ -1508,14 +1507,14 @@ function getCoinRate($currency = 'bnb') {
 }
 
 //成功返回函数封装
-const JSON_CODE_SUCCESS = 0;
-const JSON_CODE_KEY = 'code';
-const JSON_MSG_KEY = 'msg';
-const JSON_DATA_KEY = 'data';
 const JSON_DATA_CAMELIZE = false; //字段转小驼峰
 function success($data = null, $msg = 'success') {
-	$returnType = defined('RETURN_TYPE') ? strtolower(RETURN_TYPE) : '';
-	$returnAjax = IS_AJAX || $returnType === 'json' || $returnType === 'xml';
+	$RETURN_TYPE = defined('RETURN_TYPE') ? strtolower(RETURN_TYPE) : '';
+	$JSON_CODE_SUCCESS = defined('JSON_CODE_SUCCESS') ? JSON_CODE_SUCCESS : 0;
+	$JSON_CODE_KEY = defined('JSON_CODE_KEY') ? JSON_CODE_KEY : 'code';
+	$JSON_MSG_KEY = defined('JSON_MSG_KEY') ? JSON_MSG_KEY : 'msg';
+	$JSON_DATA_KEY = defined('JSON_DATA_KEY') ? JSON_DATA_KEY : 'data';
+	$IS_AJAX = IS_AJAX || $RETURN_TYPE === 'json' || $RETURN_TYPE === 'xml';
 	
 	if ((is_string($data) && !is_string($msg)) ||
 		(is_string($data) && preg_match('/\.(html|view)$/', $data)) ||
@@ -1539,38 +1538,45 @@ function success($data = null, $msg = 'success') {
 		$template_file = CONTROLLER_NAME . '/' . ACTION_NAME;
 		if (preg_match('/^json:/', $msg)) {
 			preg_match('/^json:(.*)$/', $msg, $matcher);
-			$returnType = 'json';
-			$returnAjax = true;
+			$RETURN_TYPE = 'json';
+			$IS_AJAX = true;
 			$msg = strlen($matcher[1]) ? $matcher[1] : 'success';
 		} else if (preg_match('/^xml:/', $msg)) {
 			preg_match('/^xml:(.*)$/', $msg, $matcher);
-			$returnType = 'xml';
-			$returnAjax = true;
+			$RETURN_TYPE = 'xml';
+			$IS_AJAX = true;
 			$msg = strlen($matcher[1]) ? $matcher[1] : 'success';
 		} else if (preg_match('/^view:/', $msg)) {
 			preg_match('/^view:(.*)$/', $msg, $matcher);
-			$returnType = 'view';
-			$returnAjax = false;
+			$RETURN_TYPE = 'view';
+			$IS_AJAX = false;
 			$msg = strlen($matcher[1]) ? $matcher[1] : 'success';
 		} else if (preg_match('/^display:/', $msg)) {
 			preg_match('/^display:(.*)$/', $msg, $matcher);
-			$returnType = 'display';
-			$returnAjax = false;
+			$RETURN_TYPE = 'display';
+			$IS_AJAX = false;
 			$msg = strlen($matcher[1]) ? 'success' : '';
 			if (strlen($matcher[1])) $template_file = $matcher[1];
 		}
 	}
 	
-	$washResponse = function($data) use (&$washResponse, $returnAjax) {
+	$washResponse = function($data) use (&$washResponse, $IS_AJAX) {
 		if ($data instanceof \think\response\Json) {
 			$tmp = $data->getData();
 			if (!isset($tmp['data'])) return $data;
 			$data = $tmp['data'];
 		}
 		else if ($data instanceof \think\response\View) $data = $data->getVars();
+		if (($data instanceof \think\model\Collection) || ($data instanceof \think\Model) || ($data instanceof \think\paginator\driver\Bootstrap)) {
+			if ($IS_AJAX) {
+				$obj = $data->toArray();
+				if ($data instanceof \think\paginator\driver\Bootstrap) $obj = $obj['data'];
+				$data = $obj;
+			}
+		}
 		if (!is_array($data)) return $data;
 		foreach ($data as $key => $value) {
-			if (JSON_DATA_CAMELIZE && $returnAjax && !is_numeric($key)) {
+			if (JSON_DATA_CAMELIZE && $IS_AJAX && !is_numeric($key)) {
 				unset($data[$key]);
 				$key = camelize($key, true);
 			}
@@ -1581,7 +1587,7 @@ function success($data = null, $msg = 'success') {
 			}
 			else if ($value instanceof \think\response\View) $data[$key] = $washResponse($value->getVars());
 			else if (($value instanceof \think\model\Collection) || ($value instanceof \think\Model) || ($value instanceof \think\paginator\driver\Bootstrap)) {
-				if ($returnAjax) {
+				if ($IS_AJAX) {
 					$obj = $value->toArray();
 					if ($value instanceof \think\paginator\driver\Bootstrap) $obj = $obj['data'];
 					$data[$key] = $washResponse($obj);
@@ -1607,8 +1613,8 @@ function success($data = null, $msg = 'success') {
 	
 	$toUrl = '';
 	$json = [
-		JSON_CODE_KEY => JSON_CODE_SUCCESS,
-		JSON_MSG_KEY => (is_string($msg) && !strlen($msg)) ? 'success' : $msg,
+		$JSON_CODE_KEY => $JSON_CODE_SUCCESS,
+		$JSON_MSG_KEY => (is_string($msg) && !strlen($msg)) ? 'success' : $msg,
 	];
 	if (is_string($data) && !strlen($data)) $data = null;
 	if (is_array($data) && !count($data)) $data = null;
@@ -1627,20 +1633,20 @@ function success($data = null, $msg = 'success') {
 					}
 				}
 				$data = '/' . trim(strtolower($action), '/');
-				if ($returnAjax) {
+				if ($IS_AJAX) {
 					$json['toUrl'] = $data;
 				} else {
 					$toUrl = $data;
 				}
 			} else if (preg_match('/^stay:/', $data)) {
-				if ($returnAjax) {
+				if ($IS_AJAX) {
 					$json['stay'] = 1;
 				}
 			} else {
-				$json[JSON_DATA_KEY] = $data;
+				$json[$JSON_DATA_KEY] = $data;
 			}
 		} else {
-			$json[JSON_DATA_KEY] = $washResponse($data);
+			$json[$JSON_DATA_KEY] = $washResponse($data);
 		}
 	}
 	
@@ -1649,34 +1655,36 @@ function success($data = null, $msg = 'success') {
 		if (is_array($extend)) $json = array_merge($json, $extend);
 	}
 	
-	if ($returnType === 'xml' || request()->get('output') === 'xml') {
+	if ($RETURN_TYPE === 'xml' || request()->get('output') === 'xml') {
 		return xml($json);
 	}
 	
-	if ($returnAjax || request()->get('output') === 'view') {
+	if ($IS_AJAX || request()->get('output') === 'view') {
 		return json($json);
 	}
 	
 	if (strlen($toUrl)) {
-		if (!is_string($json[JSON_MSG_KEY]) || $json[JSON_MSG_KEY] === 'success') redirect($toUrl);
-		script($json[JSON_MSG_KEY], $toUrl);
+		if (!is_string($json[$JSON_MSG_KEY]) || $json[$JSON_MSG_KEY] === 'success') redirect($toUrl);
+		script($json[$JSON_MSG_KEY], $toUrl);
 	}
 	
-	unset($json[JSON_CODE_KEY], $json[JSON_MSG_KEY]);
+	unset($json[$JSON_CODE_KEY], $json[$JSON_MSG_KEY]);
 	if (preg_match('/<[^>]+>/', $template_file)) return display($template_file, $json);
 	return view($template_file, $json);
 }
 
 //错误返回函数封装
 function error($msg = 'error', $code = 1) {
-	$returnType = defined('RETURN_TYPE') ? strtolower(RETURN_TYPE) : '';
-	$returnAjax = IS_AJAX || $returnType === 'json' || $returnType === 'xml';
+	$RETURN_TYPE = defined('RETURN_TYPE') ? strtolower(RETURN_TYPE) : '';
+	$JSON_CODE_KEY = defined('JSON_CODE_KEY') ? JSON_CODE_KEY : 'code';
+	$JSON_MSG_KEY = defined('JSON_MSG_KEY') ? JSON_MSG_KEY : 'msg';
+	$IS_AJAX = IS_AJAX || $RETURN_TYPE === 'json' || $RETURN_TYPE === 'xml';
 	if (is_string($code) && !is_string($msg)) {
 		list($msg, $code) = [$code, $msg];
 	}
-	if ($returnAjax) {
+	if ($IS_AJAX) {
 		if (!is_numeric($code)) $code = 1;
-		echo json_encode([JSON_CODE_KEY => $code, JSON_MSG_KEY => $msg], JSON_UNESCAPED_UNICODE);
+		echo json_encode([$JSON_CODE_KEY => $code, $JSON_MSG_KEY => $msg], JSON_UNESCAPED_UNICODE);
 		exit;
 	}
 	error_tip($msg, $code);
