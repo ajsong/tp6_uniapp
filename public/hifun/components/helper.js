@@ -1,7 +1,7 @@
 /*
 Developed by @mario
 */
-window.version = '3.0.20220704'
+window.version = '3.5.20220720'
 
 //API接口域名
 let _api_root = ''
@@ -146,23 +146,50 @@ const $ = {
 	},
 	async get(url, data, success, error, returnJson, notAutoLoading) {
 		if (data != null) {
-			if (typeof data == 'string') {
+			if (typeof data === 'string') {
 				url += (url.includes('?') ? '&' : '?') + data
+			} else if (this.isPlainObject(data) && Object.keys(data).length) {
+				url += (url.includes('?') ? '&' : '?') + Object.entries(data).map(item => item.join('=')).join('&')
 			} else if (this.isFunction(data)) {
 				notAutoLoading = returnJson
 				returnJson = error
 				error = success
 				success = data
-			} else if (this.isPlainObject(data) && Object.keys(data).length) {
-				url += (url.includes('?') ? '&' : '?') + Object.entries(data).map(item => item.join('=')).join('&')
+			} else if (typeof data === 'boolean') {
+				notAutoLoading = success
+				returnJson = data
+				error = null
+				success = null
 			}
 		}
 		return this.ajax(url, 'GET', null, success, error, returnJson, notAutoLoading)
 	},
 	async post(url, data, success, error, returnJson, notAutoLoading) {
+		if (typeof success === 'boolean') {
+			notAutoLoading = error
+			returnJson = success
+			error = null
+			success = null
+		}
+		if (typeof error === 'boolean') {
+			notAutoLoading = returnJson
+			returnJson = error
+			error = null
+		}
 		return this.ajax(url, 'POST', data, success, error, returnJson, notAutoLoading)
 	},
 	async postJSON(url, data, success, error, returnJson, notAutoLoading) {
+		if (typeof success === 'boolean') {
+			notAutoLoading = error
+			returnJson = success
+			error = null
+			success = null
+		}
+		if (typeof error === 'boolean') {
+			notAutoLoading = returnJson
+			returnJson = error
+			error = null
+		}
 		return this.ajax(url, 'JSON', data, success, error, returnJson, notAutoLoading)
 	},
 	//上传文件
@@ -334,6 +361,10 @@ const $ = {
 		uni.reLaunch({
 			url: '/pages/passport/login',
 			fail: () => {
+				if (this.getPage().route === 'pages/index/index') {
+					window.location.reload()
+					return
+				}
 				uni.reLaunch({
 					url: '/pages/index/index'
 				})
@@ -392,6 +423,32 @@ const $ = {
 		if (browser.ios || browser.android || browser.wm || browser.wince || browser.ucweb || browser.uc7 || browser.midp || browser.wx) browser.mobile = true
 		return browser
 	},
+	//获取URL参数, 格式:[?|#]param1=value1&param2=value2
+	request: function(){
+		let p = '?', name = null;
+		if (arguments.length > 0) {
+			if (/^[?#]$/.test(arguments[0])) p = arguments[0];
+			else name = arguments[0];
+			if (arguments.length > 1) {
+				if (/^[?#]$/.test(arguments[1])) p = arguments[1];
+				else name = arguments[1];
+			}
+		}
+		let params = {}, pairs, query = window.location.href;
+		if (!p) p = '?';
+		if (p === '?') p = '\\?';
+		query = query.replace(new RegExp('^[^'+p+']+'+p+'?'), '').replace('#/', '');
+		if (!query.length) return null;
+		pairs = query.split('&');
+		for (let i = 0; i < pairs.length; i++) {
+			let kv = pairs[i].split('='), key, val;
+			key = this.urldecode(kv[0]);
+			val = this.urldecode(pairs[i].substr((kv[0]).length+1));
+			params[key] = val;
+		}
+		if (name) return typeof(params[name])==='undefined' ? null : params[name];
+		return params;
+	},
 	//清除首尾指定字符串
 	trim(str, separate) {
 		if (str.length) {
@@ -411,6 +468,12 @@ const $ = {
 	numberFormat(str, num) {
 		if (typeof (num) === 'undefined') num = 2;
 		return parseFloat(str).toFixed(num);
+	},
+	//金额样式, 每三位加逗号
+	amountFormat(num) {
+		return num.toString().replace(/\d+/, function(n) {
+			return n.replace(/(\d)(?=(?:\d{3})+$)/g, '$1,')
+		});
 	},
 	//精确加法, arguments[2]要保留的小数位数(可以不传此参数,如不传则不处理小数位数)
 	bcadd(num, arg) {
@@ -647,45 +710,6 @@ const $ = {
 		}
 		return obj;
 	},
-	//查询节点信息
-	node(expr, callback) {
-		try {
-			uni.createSelectorQuery().select(expr).boundingClientRect(res => {
-				if (this.isFunction(callback)) callback(res);
-			}).exec();
-			/*uni.createSelectorQuery().selectViewport().scrollOffset(res => {
-				//选择显示区域，可用于获取显示区域的尺寸、滚动位置等信息
-				console.log('竖直滚动位置' + res.scrollTop);
-			}).exec();*/
-			/*uni.createSelectorQuery().in(component.$refs.sildeView).select(expr).boundingClientRect(res => {
-				//将选择器的选取范围更改为自定义组件 component 内，不设定即无法选取任何自定义组件中的节点
-			}).exec();*/
-		} catch (e) {
-			//this.debugApi({data: e});
-		}
-		return this;
-	},
-	//查询节点组信息
-	find(expr, callback) {
-		try {
-			uni.createSelectorQuery().selectAll(expr).boundingClientRect(res => {
-				if (this.isFunction(callback)) callback(res);
-				/*res.forEach(rect => {
-					rect.id        //ID
-					rect.dataset   //dataset
-					rect.left      //左边界坐标
-					rect.right     //右边界坐标
-					rect.top       //上边界坐标
-					rect.bottom    //下边界坐标
-					rect.width     //宽度
-					rect.height    //高度
-				});*/
-			}).exec();
-		} catch (e) {
-			//this.debugApi({data: e});
-		}
-		return this;
-	},
 	//动画滚动到指定位置
 	scrollTo(expr, step, fixY) {
 		if (typeof step === 'undefined' || step <= 0) step = 20;
@@ -856,6 +880,11 @@ const $ = {
 			}
 		}
 		return this;
+	},
+	cookieJSON(key) {
+		let data = this.cookie(key)
+		if (!data) return null;
+		return JSON.parse(data);
 	},
 	//获取当前地理位置
 	getLocation(callback, fail, type) {
@@ -1668,6 +1697,10 @@ const $ = {
 			})
 		}
 	},
+	//获取系统信息
+	window() {
+		return uni.getSystemInfoSync()
+	},
 	//rem转px
 	toPx(rem) {
 		let size = this.changeRem(true)
@@ -1678,11 +1711,168 @@ const $ = {
 		let system = uni.getSystemInfoSync();
 		let size = 100 * (system.windowWidth / 320)
 		//if (system.windowWidth >= 768) size = 100
-		if (!isReturn) {
-			//if (this.browser().mobile) document.documentElement.style.fontSize = size + 'px'
-			document.documentElement.style.fontSize = size + 'px'
+		if (isReturn) return size
+		//if (this.browser().mobile) document.documentElement.style.fontSize = size + 'px'
+		document.documentElement.style.fontSize = size + 'px'
+	},
+	//查询节点信息
+	nodeQuery(expr, callback) {
+		try {
+			uni.createSelectorQuery().select(expr).boundingClientRect(res => {
+				if (this.isFunction(callback)) callback(res);
+			}).exec();
+			/*uni.createSelectorQuery().selectViewport().scrollOffset(res => {
+				//选择显示区域，可用于获取显示区域的尺寸、滚动位置等信息
+				console.log('竖直滚动位置' + res.scrollTop);
+			}).exec();*/
+			/*uni.createSelectorQuery().in(component.$refs.sildeView).select(expr).boundingClientRect(res => {
+				//将选择器的选取范围更改为自定义组件 component 内，不设定即无法选取任何自定义组件中的节点
+			}).exec();*/
+		} catch (e) {
+			//this.debugApi({data: e});
 		}
-		else return size
+		return this;
+	},
+	//查询节点组信息
+	findQuery(expr, callback) {
+		try {
+			uni.createSelectorQuery().selectAll(expr).boundingClientRect(res => {
+				if (this.isFunction(callback)) callback(res);
+				/*res.forEach(rect => {
+					rect.id        //ID
+					rect.dataset   //dataset
+					rect.left      //左边界坐标
+					rect.right     //右边界坐标
+					rect.top       //上边界坐标
+					rect.bottom    //下边界坐标
+					rect.width     //宽度
+					rect.height    //高度
+				});*/
+			}).exec();
+		} catch (e) {
+			//this.debugApi({data: e});
+		}
+		return this;
+	},
+	//节点操作
+	node(expr) {
+		let _this = this
+		let selector = typeof expr !== 'string' ? expr : document.querySelectorAll(expr)
+		return {
+			selector: selector,
+			focus() {
+				if (!this.selector.length) return this
+				this.selector[0].focus()
+				return this
+			},
+			select() {
+				if (!this.selector.length) return this
+				this.selector[0].select()
+				return this
+			},
+			hasClass(name) {
+				if (!this.selector.length) return false;
+				if (typeof this.selector[0].className === 'undefined' || !this.selector[0].className.length) return false
+				if (typeof name === 'function') name = name.call(this.selector[0], 0, this.selector[0].className)
+				if (name instanceof Array) name = name.join(' ')
+				return new RegExp('\\b(' + name + ')\\b', 'ig').test(this.selector[0].className)
+			},
+			addClass(name) {
+				if (!this.selector.length) return this
+				this.selector.forEach((item, index) => {
+					if (typeof name === 'function') name = name.call(item, index, item.className)
+					if (typeof name === 'string') name = name.split(/\s+/)
+					if (!(name instanceof Array)) name = [name]
+					let className = item.className
+					name.forEach(n => {
+						if (!new RegExp('\\b(' + n + ')\\b', 'ig').test(className)) className += (className.length ? ' ' : '') + n
+					})
+					item.className = className.replace(/^\s+|\s+$/, '').replace(/\s+/, ' ')
+				})
+				return this
+			},
+			removeClass(name) {
+				if (!this.selector.length) return this
+				this.selector.forEach((item, index) => {
+					if (typeof name === 'function') name = name.call(item, index, item.className)
+					if (typeof name === 'string') name = name.split(/\s+/)
+					if (!(name instanceof Array)) name = [name]
+					let className = item.className
+					name.forEach(n =>{
+						className = className.replace(new RegExp('\\b(' + n + ')\\b', 'ig'), '')
+					})
+					if (className.replace(/\s+/, ' ').replace(/^\s+|\s+$/, '').length) {
+						item.className = className.replace(/^\s+|\s+$/, '').replace(/\s+/, ' ')
+					} else {
+						item.removeAttribute('class')
+					}
+				})
+				return this
+			},
+			toggleClass(name) {
+				if (!this.selector.length) return this
+				this.selector.forEach(item => {
+					if (_this.find(item).hasClass(name)) {
+						_this.find(item).removeClass(name)
+					} else {
+						_this.find(item).addClass(name)
+					}
+				})
+				return this
+			},
+			parent: function(selector) {
+				if (!this.selector.length) return this
+				let elArray = []
+				this.selector.forEach(item => {
+					if (typeof selector === 'undefined') {
+						if (item.parentNode) elArray.push(item.parentNode)
+					} else {
+						let parents = _this.find(selector).selector
+						for (let i = 0; i < parents.length; i++) {
+							if (item.parentNode === parents[i]) {
+								elArray.push(item.parentNode)
+							}
+						}
+					}
+				})
+				return _this.find(elArray)
+			},
+			remove: function() {
+				if (!this.selector.length) return
+				this.selector.forEach(item => {
+					if (!item.parentNode) return
+					item.parentNode.removeChild(item)
+				})
+			},
+			attr: function(name, value) {
+				if (!this.selector.length) return this
+				if (typeof name === 'string' && !name.length) return this
+				if (typeof name === 'string' && typeof value === 'undefined') {
+					return this.selector[0].getAttribute(name)
+				}
+				let arg = name
+				if ( !(arg && typeof arg === 'object' && Object.prototype.toString.call(arg).toLowerCase() === '[object object]') ) {
+					arg = {}
+					arg[name.replace(/\s+/, '')] = value
+				}
+				this.selector.forEach((item, index) => {
+					for (let key in arg) {
+						value = arg[key]
+						if (typeof value === 'function') value = value.call(item, index, item.getAttribute(key))
+						item.setAttribute(key, value)
+					}
+				})
+				return this
+			},
+			removeAttr: function(name) {
+				if (!this.selector.length) return this
+				if (typeof name !== 'string' || !name.length) return this
+				this.selector.forEach(item => {
+					item.removeAttribute(name)
+				})
+				return this
+			},
+		}
 	},
 }
 

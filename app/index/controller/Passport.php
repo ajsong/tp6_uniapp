@@ -151,10 +151,14 @@ class Passport extends Core
 		
 		if ($return_obj) return $member;
 		
-		$url = session('api_gourl');
-		if ($url) {
-			session('api_gourl', null);
-			return success("tourl:$url");
+		$RETURN_TYPE = defined('RETURN_TYPE') ? strtolower(RETURN_TYPE) : '';
+		$IS_AJAX = IS_AJAX || $RETURN_TYPE === 'json' || $RETURN_TYPE === 'xml';
+		if (!$IS_AJAX) {
+			$url = session('api_gourl');
+			if ($url) {
+				session('api_gourl', null);
+				return success("tourl:$url");
+			}
 		}
 		
 		unset($member->id);
