@@ -11,6 +11,8 @@ return [
 		'other' => ['*'],
 		'blind' => ['*'],
 	],
+	//多端登录
+	'multi_terminal' => 0,
 	//允许跨域请求的controller, action, 星号为不限制
 	'access_allow' => ['*'],
 	//允许跨域请求的外站域名, 如 http://localhost:8080, 星号为不限制

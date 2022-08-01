@@ -520,8 +520,12 @@ function download_files($urls, $dir='', $origin_name=false, $suffix=''): array {
 }
 
 //导出成excel, $return为true即在服务器生成文件, $fields = ['id'=>'ID', 'name'=>'姓名', 'mobile'=>'电话'];
+//composer require phpoffice/phpexcel
+//在需要使用PHPExcel的地方引入
+//use PHPExcel_IOFactory;
+//use PHPExcel;
 function export_excel($rs, $fields, $return=false) {
-	$objPHPExcel = new \PHPExcel\PHPExcel();
+	$objPHPExcel = new PHPExcel();
 	//表格头
 	$column = 'A';
 	$row_number = 1;
@@ -532,9 +536,10 @@ function export_excel($rs, $fields, $return=false) {
 		$objSheet->getColumnDimension($column)->setAutoSize(true);
 		$objSheet->getDefaultStyle()->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER)->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_LEFT);
 		$objSheet->getStyle("$cell")->getNumberFormat()->setFormatCode(PHPExcel_Style_NumberFormat::FORMAT_TEXT);
-		$objSheet->getStyle("$cell")->getAlignment()->setWrapText(false);
+		$objSheet->getStyle("$cell")->getAlignment()->setWrapText();
 		$column++;
 	}
+	if ($rs instanceof \think\model\Collection) $rs = $rs->toArray();
 	$row_number = 2; //1:based index
 	foreach ($rs as $g) {
 		$column = 'A';
@@ -543,13 +548,13 @@ function export_excel($rs, $fields, $return=false) {
 			$objSheet = $objPHPExcel->getActiveSheet();
 			$objSheet->getColumnDimension($column)->setAutoSize(true);
 			if (array_key_exists($field, $g)) {
-				$objSheet->setCellValue("$cell", "{$g->{$field}} ");
+				$objSheet->setCellValue("$cell", "{$g[$field]} ");
 			} else {
 				$objSheet->setCellValue("$cell", " ");
 			}
 			$objSheet->getDefaultStyle()->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER)->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_LEFT);
 			$objSheet->getStyle("$cell")->getNumberFormat()->setFormatCode(PHPExcel_Style_NumberFormat::FORMAT_TEXT);
-			$objSheet->getStyle("$cell")->getAlignment()->setWrapText(false);
+			$objSheet->getStyle("$cell")->getAlignment()->setWrapText();
 			$column++;
 		}
 		$row_number++;

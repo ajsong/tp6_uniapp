@@ -75,9 +75,7 @@ class Passport extends Core
 				if (crypt_password($password, $member->salt) != $member->password) error(lang('passport.tips.password.error'));
 			}
 			if ($member->status == 0) error(lang('passport.tips.status'));
-			$token = generate_token();
 			$data = [
-				'token' => $token,
 				'session_id' => Session::getId(),
 				'last_ip' => $this->ip,
 				'last_time' => time(),
@@ -85,6 +83,16 @@ class Passport extends Core
 			];
 			if (!$member->name || !strlen($member->name)) {
 				$data['name'] = 'user' . generate_code(6);
+			}
+			if (config('app.multi_terminal', 0) == 0) {
+				$token = generate_token();
+				$data['token'] = $token;
+			} else {
+				$token = Member::where('id', $member->id)->value('token');
+				if (!$token) {
+					$token = generate_token();
+					$data['token'] = $token;
+				}
 			}
 			Member::where('id', $member->id)->update($data);
 		} else {
@@ -134,6 +142,8 @@ class Passport extends Core
 			Member::insert($data);
 		}
 		
+		if (cookie('?member_token')) cookie('member_token', null);
+		session('member', null);
 		$member = $this->get_member_from_token($token, true);
 		
 		//头像

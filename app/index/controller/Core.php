@@ -59,7 +59,7 @@ class Core extends Base {
 		
 		$this->token = $this->request->header('token', '');
 		if (!$this->token) $this->token = $this->request->get('token', '');
-		if ($this->token) $this->_check_login();
+		if ($this->token && config('app.multi_terminal', 0) == 0) $this->_check_login();
 		
 		$member = session('member');
 		if ($member) {
@@ -120,7 +120,7 @@ class Core extends Base {
 	public function _check_login() {
 		$member = session('member');
 		if ( $member && !strlen($this->token) ) {
-			return $this->get_member_from_token($member->token, true);
+			return $this->get_member_from_token($member->token);
 		} else if ( strlen($this->token) ) {
 			return $this->get_member_from_token($this->token);
 		} else if ( cookie('?member_token') ) {
