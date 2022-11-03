@@ -1,0 +1,54 @@
+{extend name="layout/main" /}
+
+{block name="header"}
+{/block}
+
+{block name="content"}
+<section class="panel">
+    <header class="panel-heading">
+        <h4>{if $row.id>0}反馈处理{else}添加反馈{/if}</h4>
+    </header>
+    <div class="panel-body">
+        <form class="form-horizontal" enctype="multipart/form-data" method="post" onsubmit="return false" role="form">
+	        <input type="hidden" name="id" value="{$row.id}">
+	        {if $row.member_id>0}
+            <div class="form-group">
+                <label class="col-sm-2 control-label">会员</label>
+                <div class="col-sm-5">
+                    <h5><a href="{:url('member/edit', ['id'=>$row.member_id])}" target="_blank">{$row.email}</a></h5>
+                </div>
+            </div>
+	        {/if}
+            <div class="form-group">
+                <label class="col-sm-2 control-label">内容</label>
+                <div class="col-sm-5">
+	                <textarea class="form-control" name="content" rows="5">{$row.content}</textarea>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">外网账号</label>
+                <div class="col-sm-5">
+                    <input type="text" value="{$row.account}" name="account" class="form-control">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">回复</label>
+                <div class="col-sm-5">
+	                <textarea class="form-control" name="reply" rows="5">{$row.reply}</textarea>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <div class="col-sm-offset-2 col-sm-10">
+                    <button type="submit" data-url="{:url('feedback/edit')}" onclick="main.ajaxForm(this)" class="btn btn-primary">提交</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</section>
+{/block}
+
+
+{block name="footer"}
+
+{/block}

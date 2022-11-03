@@ -1,0 +1,71 @@
+{
+    "name": "topthink/think",
+    "description": "the new thinkphp framework",
+    "type": "project",
+    "keywords": [
+        "framework",
+        "thinkphp",
+        "ORM"
+    ],
+    "homepage": "https://www.thinkphp.cn/",
+    "license": "Apache-2.0",
+    "authors": [
+        {
+            "name": "liu21st",
+            "email": "liu21st@gmail.com"
+        },
+        {
+            "name": "yunwuxin",
+            "email": "448901948@qq.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.2.5",
+        "ext-json": "*",
+        "ext-bcmath": "*",
+        "ext-curl": "*",
+        "ext-gd": "*",
+        "ext-fileinfo": "*",
+        "ext-openssl": "*",
+        "ext-simplexml": "*",
+        "ext-libxml": "*",
+		"ext-iconv": "*",
+        "topthink/framework": "^6.0.0",
+        "topthink/think-orm": "^2.0",
+        "topthink/think-multi-app": "^1.0",
+        "topthink/think-view": "^1.0",
+        "guzzlehttp/guzzle": "~6.0",
+        "sc0vu/web3.php": "dev-master",
+        "kornrunner/keccak": "~1.0",
+        "phpoffice/phpexcel": "^1.8"
+    },
+    "require-dev": {
+        "symfony/var-dumper": "^4.2",
+        "topthink/think-trace":"^1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "app\\": "app",
+            "PHPQrcode\\": "extend/PHPQrcode/",
+            "EthTool\\": "extend/EthTool/src/",
+            "Elliptic\\": "extend/simplito/elliptic-php/lib/",
+            "BN\\": "extend/simplito/bn-php/lib/",
+            "BI\\": "extend/simplito/bigint-wrapper-php/lib/",
+            "Web3p\\EthereumTx\\": "extend/web3p/ethereum-tx/src",
+            "Web3p\\EthereumUtil\\": "extend/web3p/ethereum-util/src",
+            "Web3p\\RLP\\": "extend/web3p/rlp/src"
+        },
+        "psr-0": {
+            "": "extend/"
+        }
+    },
+    "config": {
+        "preferred-install": "dist"
+    },
+    "scripts": {
+        "post-autoload-dump": [
+            "@php think service:discover",
+            "@php think vendor:publish"
+        ]
+    }
+}

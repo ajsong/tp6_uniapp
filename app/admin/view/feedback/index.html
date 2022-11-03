@@ -1,0 +1,72 @@
+{extend name="layout/main" /}
+
+{block name="header"}
+{/block}
+
+{block name="content"}
+<section class="panel">
+    <header class="panel-heading">
+        <h4>意见反馈</h4>
+    </header>
+    <div class="panel-body">
+        <form class="form-block" action="">
+            <div class="form-group">
+                <div class="col-sm-2 no-pd-r">
+                    <input type="text" id="keyword" value="{$Request.get.keyword}" name="keyword" class="form-control" placeholder="关键词">
+                </div>
+	            <div class="col-sm-1">
+                    <button type="submit" class="btn btn-color">搜索</button>
+	            </div>
+            </div>
+        </form>
+        <div class="panel-table">
+	        <table class="table table-bordered table-striped no-margin">
+	            <thead>
+	            <tr>
+	                <th>ID</th>
+	                <th class="text-left">内容</th>
+	                <th>状态</th>
+	                <th>添加时间</th>
+	                <th>操作</th>
+	            </tr>
+	            </thead>
+	            <tbody>
+	            {if count($list)}
+	            {foreach $list as $g}
+	            <tr>
+	                <td>{$g.id}</td>
+		            <td class="text-left">
+			            <a href="{:url('feedback/edit', ['id'=>$g.id])}">{:cut_str(str_replace("\n", ' ', $g.content), 20)}</a>
+			            {if $g.reply}<div><font class="gray">回复：{:cut_str(str_replace("\n", ' ', $g.reply), 20)}</font></div>{/if}
+		            </td>
+	                <td>
+                        {if $g.reply}<span class="btn btn-xs btn-primary">已回复</span>
+                        {else}<span class="btn btn-xs btn-default">待回复</span>
+                        {/if}
+	                </td>
+	                <td>{:date('Y-m-d H:i', $g.add_time)}</td>
+	                <td>
+	                    <a href="{:url('feedback/edit', ['id'=>$g.id])}" class="btn btn-xs btn-info">修改</a>
+	                    <a data-url="{:url('feedback/delete', ['id'=>$g.id])}" onclick="main.ajaxDelete(this)" data-msg="确定要删除吗？" class="btn btn-xs btn-danger">删除</a>
+	                </td>
+	            </tr>
+	            {/foreach}
+	            {else}
+	            <tr class="text-center">
+	                <td colspan="12">暂无数据</td>
+	            </tr>
+	            {/if}
+	            </tbody>
+	        </table>
+        </div>
+        <div class="page">
+            {$list|raw}
+        </div>
+    </div>
+</section>
+{/block}
+
+
+{block name="footer"}
+
+{/block}

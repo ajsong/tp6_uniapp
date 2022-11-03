@@ -1,0 +1,198 @@
+{extend name="layout/main" /}
+
+{block name="header"}{/block}
+
+{block name="content"}
+<section class="panel">
+    <header class="panel-heading">
+	    <!--<button type="button" class="btn btn-success pull-right" id="export">导出</button>-->
+        <h4>账变记录</h4>
+    </header>
+    <div class="panel-body">
+        <form class="form-block" action="">
+            <div class="form-group">
+                <div class="col-sm-2 no-pd-r">
+                    <input type="text" value="{$Request.get.keyword}" name="keyword" class="form-control" placeholder="关键词">
+                </div>
+                <div class="col-sm-1 no-pd-r">
+                    <select name="money_type" class="form-control">
+                        <option value="">钱包类型</option>
+                        {foreach $money_types as $k=>$g}
+                        <option {if $Request.get.money_type==strval($k)}selected{/if} value="{$k}">{$g}</option>
+                        {/foreach}
+                    </select>
+                </div>
+                <div class="col-sm-1 no-pd-r">
+                    <select name="type" class="form-control">
+                        <option value="">操作</option>
+                        {foreach $types as $k=>$g}
+                        <option {if $Request.get.type==$k}selected{/if} value="{$k}">{$g}</option>
+                        {/foreach}
+                    </select>
+                </div>
+                <div class="col-sm-1 no-pd-r">
+                    <input type="text" value="{$Request.get.begin_time}" name="begin_time" id="begin_time" class="form-control col-datepicker" data-readonly="false" placeholder="开始时间">
+                </div>
+	            <div class="col-gap">-</div>
+                <div class="col-sm-1 no-pd-r">
+                    <input type="text" value="{$Request.get.end_time}" name="end_time" id="end_time" class="form-control col-datepicker" data-readonly="false" placeholder="结束时间">
+                </div>
+                <div class="col-sm-1">
+	                <button type="submit" class="btn btn-color">搜索</button>
+	            </div>
+            </div>
+        </form>
+        <div class="panel-table">
+	        <table class="table table-bordered table-striped no-margin">
+	            <thead>
+	            <tr>
+	                <th>ID</th>
+	                <th class="text-left">所属会员</th>
+	                <th>钱包类型</th>
+	                <th>变化</th>
+	                <th>原来</th>
+	                <th>变化后</th>
+	                <th class="text-left">操作</th>
+	                <th class="text-left">备注</th>
+	                <!--<th class="text-left">来源</th>-->
+	                <th>时间</th>
+	            </tr>
+	            </thead>
+	            <tbody>
+                {if count($list)}
+	            {foreach $list as $g}
+	            <tr>
+	                <td>{$g.id}</td>
+	                <td class="text-left">
+		                <a href="{:url('member/index', ['id'=>$g.member_id])}" target="_blank">
+		                <div>ID：{$g.member_id}</div>
+	                    {if $g.member_mobile!=''}<div>{$g.member_mobile}</div>{/if}
+	                    {if $g.member_email!=''}<div>{$g.member_email}</div>{/if}
+	                    <!--{if $g.wallet!=''}<div>{$g.wallet}</div>{/if}-->
+		                </a>
+	                </td>
+	                <td>
+	                    <button class="btn btn-xs btn-info">{$g::getMoneyType($g.money_type)}</button>
+	                </td>
+	                <td>
+		                {assign name="symbol" value="$g::getStatus($g.status)"}
+		                {if $symbol == '+'}
+	                    <button class="btn btn-xs btn-primary">＋{:str_replace('-', '', $g.number)}</button>
+		                {else}
+	                    <button class="btn btn-xs btn-danger">－{:str_replace('-', '', $g.number)}</button>
+		                {/if}
+	                </td>
+	                <td>
+	                    <span class="btn btn-xs btn-white">{$g.old}</span>
+	                </td>
+	                <td>
+	                    <span class="btn btn-xs btn-white">{$g.new}</span>
+	                </td>
+	                <td class="text-left">
+	                    {$g::getTypes($g.type)}
+	                </td>
+	                <td class="text-left">
+	                    {$g.remark}
+	                </td>
+	                <!--<td class="text-left">
+	                    {if $g.type == 4 || $g.type == 5}
+		                <div>ID：{$g.from_id}</div>
+		                <div>会员：{$g.from_wallet}</div>
+	                    <div>金额：{$g.from_price}</div>
+		                {else}
+		                -
+		                {/if}
+	                </td>-->
+	                <td>
+	                    {:date('Y-m-d H:i:s', $g.add_time)}
+	                </td>
+	            </tr>
+	            {/foreach}
+                {literal}
+	            <tr class="template">
+	                <td>{$g.id}</td>
+	                <td class="text-left">
+		                <a href="{:url('member/index', ['id'=>$g.member_id])}" target="_blank">
+		                <div>ID：{$g.member_id}</div>
+	                    {if $g.member_mobile!=''}<div>{$g.member_mobile}</div>{/if}
+	                    {if $g.member_email!=''}<div>{$g.member_email}</div>{/if}
+	                    <!--{if $g.wallet!=''}<div>{$g.wallet}</div>{/if}-->
+		                </a>
+	                </td>
+	                <td>
+	                    <button class="btn btn-xs btn-info">{:getMoneyType($g.money_type)}</button>
+	                </td>
+	                <td>
+		                {var symbol = getStatus($g.status)}
+		                {if symbol == '+'}
+	                    <button class="btn btn-xs btn-primary">＋{$g.number.replace('-', '')}</button>
+		                {else}
+	                    <button class="btn btn-xs btn-danger">－{$g.number.replace('-', '')}</button>
+		                {/if}
+	                </td>
+	                <td>
+	                    {$g.old}
+	                </td>
+	                <td>
+	                    {$g.new}
+	                </td>
+	                <td>
+	                    {:getTypes($g.type)}
+	                </td>
+	                <td class="text-left">
+	                    {$g.remark}
+	                </td>
+	                <!--<td class="text-left">
+	                    {if $g.type == 4 || $g.type == 5}
+		                <div>ID：{$g.from_id}</div>
+		                <div>会员：{$g.from_wallet}</div>
+	                    <div>金额：{$g.from_price}</div>
+		                {else}
+		                -
+		                {/if}
+	                </td>-->
+	                <td>
+	                    {:date('Y-mm-dd H:i:ss', $g.add_time)}
+	                </td>
+	            </tr>
+                {/literal}
+	            {else}
+	            <tr class="text-center">
+	                <td colspan="10">暂无数据</td>
+	            </tr>
+	            {/if}
+	            </tbody>
+	        </table>
+        </div>
+        <div class="page">
+            {$list|raw}
+        </div>
+    </div>
+</section>
+{/block}
+
+{block name="footer"}
+<script>
+let types = null;
+function getTypes(code) {
+	if(!types)$.ajax({ url:'template_get_types', async:false, success:function(json){ types = json.data.list } });
+	return (typeof types[String(code)] !== 'undefined') ? types[String(code)] : code;
+}
+let moneyType = null;
+function getMoneyType(code) {
+	if(!moneyType)$.ajax({ url:'template_get_money_type', async:false, success:function(json){ moneyType = json.data.list } });
+	return (typeof moneyType[String(code)] !== 'undefined') ? moneyType[String(code)] : code;
+}
+function getStatus(status) {
+	switch (parseInt(status)) {
+		case 0:
+			//return '-';
+			return '';
+		case 1:
+			return '+';
+		default:
+			return '';
+	}
+}
+</script>
+{/block}
